@@ -1,0 +1,34 @@
+name: Foundation checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: foundation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  reference-and-docs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # verified v4 ref
+        with:
+          persist-credentials: false
+      - name: Check Python version
+        run: |
+          python3 --version
+          python3 -c 'import sys; assert sys.version_info >= (3, 10)'
+      - name: Validate foundation files and local links
+        run: python3 tools/check_repo.py
+      - name: Run reference model tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Explain scope of checks
+        run: echo 'These checks do not build Unity, test Quest hardware, or certify competition eligibility.'
