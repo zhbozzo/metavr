@@ -1,0 +1,55 @@
+# Unity generated data (keep Assets, .meta, Packages and ProjectSettings)
+**/[Ll]ibrary/
+**/[Tt]emp/
+**/[Oo]bj/
+**/[Ll]ogs/
+**/[Uu]ser[Ss]ettings/
+**/[Bb]uild/
+**/[Bb]uilds/
+**/[Mm]emoryCaptures/
+**/Recordings/
+*.csproj
+*.sln
+*.suo
+*.user
+*.pidb
+*.pdb
+*.apk
+*.aab
+*.unitypackage
+
+# Local tools and Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+.DS_Store
+.idea/
+.vs/
+
+# Private credentials and local configuration
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+*.p12
+*.pem
+*.key
+secrets/
+private/
+local-captures/
+room-scans/
+
+# No Terraform deployment is currently part of this project
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# Local generated test output
+TestResults/
