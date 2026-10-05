@@ -13,18 +13,18 @@ namespace RoomBreakers.ScaleLab.Editor
         public static void Open()
         {
             if (EditorApplication.isPlaying || !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
-            try { CreateScene(); }
+            try { CreateScene(discardConfirmed: true); }
             catch (InvalidOperationException error)
             { EditorUtility.DisplayDialog("ROOMBREAKERS", error.Message, "OK"); }
         }
 
         // Shared by the interactive menu and batch setup; no dialogs or fabricated scene YAML.
-        public static Scene CreateScene()
+        public static Scene CreateScene(bool discardConfirmed = false)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
                 throw new InvalidOperationException("Stop Play Mode before creating a scene.");
             for (int i = 0; i < SceneManager.sceneCount; i++)
-                if (SceneManager.GetSceneAt(i).isDirty)
+                if (!discardConfirmed && SceneManager.GetSceneAt(i).isDirty)
                     throw new InvalidOperationException("Save or discard modified scenes first; setup never discards them.");
             Shader shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
             if (shader == null) throw new InvalidOperationException("A built-in or URP unlit shader is required.");
