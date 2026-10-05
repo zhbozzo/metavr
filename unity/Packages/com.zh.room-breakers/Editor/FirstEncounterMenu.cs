@@ -1,7 +1,9 @@
+using System;
 using RoomBreakers.UnityInput;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace RoomBreakers.ScaleLab.Editor
 {
@@ -11,8 +13,21 @@ namespace RoomBreakers.ScaleLab.Editor
         public static void Open()
         {
             if (EditorApplication.isPlaying || !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+            try { CreateScene(); }
+            catch (InvalidOperationException error)
+            { EditorUtility.DisplayDialog("ROOMBREAKERS", error.Message, "OK"); }
+        }
+
+        // Shared by the interactive menu and batch setup; no dialogs or fabricated scene YAML.
+        public static Scene CreateScene()
+        {
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+                throw new InvalidOperationException("Stop Play Mode before creating a scene.");
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+                if (SceneManager.GetSceneAt(i).isDirty)
+                    throw new InvalidOperationException("Save or discard modified scenes first; setup never discards them.");
             Shader shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
-            if (shader == null) { EditorUtility.DisplayDialog("ROOMBREAKERS", "A built-in or URP unlit shader is required.", "OK"); return; }
+            if (shader == null) throw new InvalidOperationException("A built-in or URP unlit shader is required.");
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var cameraObject = new GameObject("Synthetic seated desktop camera");
             var camera = cameraObject.AddComponent<Camera>(); cameraObject.AddComponent<AudioListener>();
@@ -25,8 +40,9 @@ namespace RoomBreakers.ScaleLab.Editor
             var hand = root.AddComponent<DesktopEncounterHand>();
             var rig = root.AddComponent<FirstEncounterRig>();
             rig.Configure(source, null, hand, camera, shader); hand.Configure(rig);
-            Selection.activeGameObject = root; EditorSceneManager.MarkSceneDirty(scene);
-            // User saves a real scene, with real editor-generated metadata. No fabricated YAML/GUIDs.
+            if (!Application.isBatchMode) Selection.activeGameObject = root;
+            EditorSceneManager.MarkSceneDirty(scene);
+            return scene;
         }
     }
 }
