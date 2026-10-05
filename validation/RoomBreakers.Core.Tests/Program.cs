@@ -95,7 +95,7 @@ internal static class Program
         Test("tracking loss cancels held object", () => { var s = Session(); s.BeginCapture(HandId.Left, Hand(s, P())); s.MoveCapture(HandId.Left, Hand(s, P(1))); s.SetPause(PauseReason.TrackingLost, true); Near(s.ObjectPose, P(1)); Require(s.Owner == HandId.None && s.IsPaused); });
         Test("cannot capture while paused", () => { var s = Session(); s.SetPause(PauseReason.User, true); Require(!s.BeginCapture(HandId.Left, Hand(s, P()))); });
         Test("pause reasons do not override each other", () => { var s = Session(); s.SetPause(PauseReason.User, true); s.SetPause(PauseReason.FocusLost, true); s.SetPause(PauseReason.FocusLost, false); Require(s.IsPaused); s.SetPause(PauseReason.User, false); Require(!s.IsPaused); });
-        Test("unknown pause reason rejected", () => { var s = Session(); Throws<ArgumentException>(() => s.SetPause((PauseReason)16, true)); });
+        Test("unknown pause reason rejected", () => { var s = Session(); Throws<ArgumentException>(() => s.SetPause((PauseReason)32, true)); });
         Test("combined pause reason rejected", () => { var s = Session(); Throws<ArgumentException>(() => s.SetPause(PauseReason.User | PauseReason.TrackingLost, true)); });
         Test("paused time never advances", () => { var s = Session(); s.SetPause(PauseReason.User, true); s.Tick(.05f); Require(s.ElapsedSeconds == 0); });
         Test("long delta does not catch up absent time", () => { var s = Session(); s.Tick(100); Near((float)s.ElapsedSeconds, .1f); });
