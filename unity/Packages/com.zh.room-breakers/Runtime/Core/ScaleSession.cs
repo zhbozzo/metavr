@@ -26,7 +26,8 @@ namespace RoomBreakers.Core
         public bool IsPaused => PauseReasons != PauseReason.None;
         public int ReturnCount { get; private set; }
         public double ElapsedSeconds { get; private set; }
-        public bool CanReturn => State == ProbeState.Held && Vector3.DistanceSquared(ObjectPose.Position, ReturnCenter) <= ReturnRadius * ReturnRadius;
+        public bool HasValidCaptureSample { get; private set; }
+        public bool CanReturn => State == ProbeState.Held && HasValidCaptureSample && !IsPaused && Vector3.DistanceSquared(ObjectPose.Position, ReturnCenter) <= ReturnRadius * ReturnRadius;
 
         public ScaleSession(DualScaleMap map, Pose3 initial, InteractionBounds interactionBounds, Vector3 returnCenter, float returnRadius)
         {
@@ -35,6 +36,9 @@ namespace RoomBreakers.Core
             if (!initial.IsValid || !bounds.Contains(initial.Position)) throw new ArgumentException("Initial pose must be valid and within bounds.", nameof(initial));
             if (!bounds.Contains(returnCenter)) throw new ArgumentException("Return center must be within bounds.", nameof(returnCenter));
             if (!SpatialMath.IsFinite(returnRadius) || returnRadius <= 0f || returnRadius > 100f) throw new ArgumentOutOfRangeException(nameof(returnRadius));
+            var returnPose = new Pose3(returnCenter, initial.Rotation);
+            if (!CanRepresent(map, initial) || !CanRepresent(map, returnPose))
+                throw new ArgumentException("Initial pose and return target must be finite in both views.", nameof(map));
             initialPose = initial;
             ObjectPose = initial;
             ReturnCenter = returnCenter;
@@ -61,12 +65,18 @@ namespace RoomBreakers.Core
             LastHandWorld = world;
             Owner = hand;
             State = ProbeState.Held;
+            HasValidCaptureSample = true;
             return true;
         }
 
         public bool MoveCapture(HandId hand, Pose3 miniatureHand)
         {
-            if (IsPaused || State != ProbeState.Held || Owner != hand || !ValidHand(hand) || !miniatureHand.IsValid) return false;
+            // A foreign input must not invalidate the current owner's last sample.
+            if (IsPaused || State != ProbeState.Held || Owner != hand || !ValidHand(hand)) return false;
+            // Keep the last renderable pose, but never reward a release based on stale input.
+            // A later valid sample can recover the current capture without a teleport.
+            HasValidCaptureSample = false;
+            if (!miniatureHand.IsValid) return false;
             Pose3 candidate;
             Pose3 world;
             try
@@ -76,20 +86,26 @@ namespace RoomBreakers.Core
                 world = Map.RoomView(canonical);
             }
             catch (ArgumentException) { return false; }
-            if (!bounds.Contains(candidate.Position)) return false;
+            if (!bounds.Contains(candidate.Position) || !CanRepresent(Map, candidate)) return false;
             ObjectPose = candidate;
             LastHandWorld = world;
+            HasValidCaptureSample = true;
             return true;
         }
 
-        // A release commits only at the actual target. Invalid release restores the capture-start pose.
+        // Adapters must deliver a current valid sample before release, or cancel when
+        // tracking is stale. This domain guard handles explicitly rejected samples;
+        // it cannot detect missing sensor callbacks without an adapter watchdog.
         public bool ReleaseCapture(HandId hand)
         {
             if (IsPaused || State != ProbeState.Held || Owner != hand || !ValidHand(hand)) return false;
             if (!CanReturn) { CancelCapture(hand); return false; }
-            ObjectPose = new Pose3(ReturnCenter, ObjectPose.Rotation);
+            var returnedPose = new Pose3(ReturnCenter, ObjectPose.Rotation);
+            if (!CanRepresent(Map, returnedPose)) { CancelCapture(hand); return false; }
+            ObjectPose = returnedPose;
             Owner = HandId.None;
             State = ProbeState.Returned;
+            HasValidCaptureSample = false;
             ReturnCount++;
             return true;
         }
@@ -100,6 +116,7 @@ namespace RoomBreakers.Core
             ObjectPose = captureStart;
             Owner = HandId.None;
             State = ProbeState.Available;
+            HasValidCaptureSample = false;
             return true;
         }
 
@@ -118,6 +135,8 @@ namespace RoomBreakers.Core
         public bool Recalibrate(DualScaleMap map)
         {
             if (map == null || !IsPaused || State == ProbeState.Held) return false;
+            // Validate all restorable poses before replacing either frame.
+            if (!CanRepresent(map, initialPose) || !CanRepresent(map, ObjectPose) || !CanRepresent(map, new Pose3(ReturnCenter, Quaternion.Identity))) return false;
             Map = map;
             return true;
         }
@@ -136,7 +155,14 @@ namespace RoomBreakers.Core
             ReturnCount = 0;
             ElapsedSeconds = 0;
             LastHandWorld = Pose3.Identity;
+            HasValidCaptureSample = false;
             // Preserve pause reasons. Reset must not resume a tracking/focus fault.
+        }
+
+        private static bool CanRepresent(DualScaleMap map, Pose3 canonical)
+        {
+            try { return map.RoomView(canonical).IsValid && map.MiniatureView(canonical).IsValid; }
+            catch (ArgumentException) { return false; }
         }
         private static bool ValidHand(HandId hand) => hand == HandId.Left || hand == HandId.Right;
     }
