@@ -1,0 +1,6 @@
+{
+  "name": "RoomBreakers.UnityInput",
+  "rootNamespace": "RoomBreakers.UnityInput",
+  "references": ["RoomBreakers.Core"],
+  "autoReferenced": true
+}
