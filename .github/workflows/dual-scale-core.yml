@@ -1,7 +1,7 @@
 name: Dual-scale CSharp core
 on:
   push:
-    branches: [main, 'feat/dual-scale-prototype']
+    branches: [main, 'feat/dual-scale-prototype', 'fix/capture-validation']
     paths: ['unity/Packages/com.zh.room-breakers/**', 'validation/**', '.github/workflows/dual-scale-core.yml']
   pull_request:
     paths: ['unity/Packages/com.zh.room-breakers/**', 'validation/**', '.github/workflows/dual-scale-core.yml']
@@ -25,5 +25,8 @@ jobs:
           dotnet --list-runtimes
       - name: Compile actual core and run behavioral tests
         run: dotnet run --project validation/RoomBreakers.Core.Tests/RoomBreakers.Core.Tests.csproj --configuration Release
+      - name: Run invalid-input regressions and seeded stress tests
+        run: dotnet run --project validation/RoomBreakers.Hardening.Tests/RoomBreakers.Hardening.Tests.csproj --configuration Release
       - name: State validation boundary
-        run: echo 'Compiled .NET Standard 2.1 core; executed .NET tests. NOT a Unity import, APK build, hand-tracking test or Quest performance result.'
+        if: always()
+        run: echo 'Real CSharp core tests only. NOT Unity import, APK build, hand tracking, physical safety or Quest performance.'
