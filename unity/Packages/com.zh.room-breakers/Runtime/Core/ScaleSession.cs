@@ -7,14 +7,14 @@ namespace RoomBreakers.Core
     public enum ProbeState { Available, Held, Returned }
     [Flags] public enum PauseReason { None = 0, User = 1, TrackingLost = 2, FocusLost = 4, Placement = 8, Menu = 16 }
 
-    // One entity for the first slice. Both views read this state; neither view simulates it.
+    // One authoritative entity. Both visual scales consume this state.
     public sealed class ScaleSession
     {
         public const string EntityId = "scale-probe-001";
         private readonly Pose3 initialPose;
         private readonly InteractionBounds bounds;
-        private Pose3 captureStart;
-        private Pose3 handToObject;
+        private readonly Func<Vector3, Vector3, bool> motionConstraint;
+        private Pose3 captureStart, handToObject;
         public DualScaleMap Map { get; private set; }
         public Pose3 ObjectPose { get; private set; }
         public Pose3 LastHandWorld { get; private set; }
@@ -29,56 +29,42 @@ namespace RoomBreakers.Core
         public bool HasValidCaptureSample { get; private set; }
         public bool CanReturn => State == ProbeState.Held && HasValidCaptureSample && !IsPaused && Vector3.DistanceSquared(ObjectPose.Position, ReturnCenter) <= ReturnRadius * ReturnRadius;
 
-        public ScaleSession(DualScaleMap map, Pose3 initial, InteractionBounds interactionBounds, Vector3 returnCenter, float returnRadius)
+        public ScaleSession(DualScaleMap map, Pose3 initial, InteractionBounds interactionBounds, Vector3 returnCenter,
+            float returnRadius, Func<Vector3, Vector3, bool> motionConstraint = null)
         {
             Map = map ?? throw new ArgumentNullException(nameof(map));
             bounds = interactionBounds ?? throw new ArgumentNullException(nameof(interactionBounds));
+            this.motionConstraint = motionConstraint;
             if (!initial.IsValid || !bounds.Contains(initial.Position)) throw new ArgumentException("Initial pose must be valid and within bounds.", nameof(initial));
             if (!bounds.Contains(returnCenter)) throw new ArgumentException("Return center must be within bounds.", nameof(returnCenter));
             if (!SpatialMath.IsFinite(returnRadius) || returnRadius <= 0f || returnRadius > 100f) throw new ArgumentOutOfRangeException(nameof(returnRadius));
-            var returnPose = new Pose3(returnCenter, initial.Rotation);
-            if (!CanRepresent(map, initial) || !CanRepresent(map, returnPose))
-                throw new ArgumentException("Initial pose and return target must be finite in both views.", nameof(map));
-            initialPose = initial;
-            ObjectPose = initial;
-            ReturnCenter = returnCenter;
-            ReturnRadius = returnRadius;
+            if (!CanRepresent(map, initial) || !CanRepresent(map, new Pose3(returnCenter, initial.Rotation)) ||
+                !MotionAllowed(initial.Position, initial.Position) || !MotionAllowed(returnCenter, returnCenter))
+                throw new ArgumentException("Initial pose and destination must be valid in both views and room geometry.", nameof(map));
+            initialPose = initial; ObjectPose = initial; ReturnCenter = returnCenter; ReturnRadius = returnRadius;
             LastHandWorld = Pose3.Identity;
         }
-
         public bool BeginCapture(HandId hand, Pose3 miniatureHand)
         {
             if (IsPaused || State != ProbeState.Available || !ValidHand(hand) || !miniatureHand.IsValid) return false;
-            Pose3 canonical;
-            Pose3 relative;
-            Pose3 world;
+            Pose3 relative, world;
             try
             {
-                canonical = Map.FromMiniature(miniatureHand);
+                Pose3 canonical = Map.FromMiniature(miniatureHand);
                 Quaternion inverse = Quaternion.Conjugate(canonical.Rotation);
                 relative = new Pose3(Vector3.Transform(ObjectPose.Position - canonical.Position, inverse), inverse * ObjectPose.Rotation);
                 world = Map.RoomView(canonical);
             }
             catch (ArgumentException) { return false; }
-            captureStart = ObjectPose;
-            handToObject = relative;
-            LastHandWorld = world;
-            Owner = hand;
-            State = ProbeState.Held;
-            HasValidCaptureSample = true;
-            return true;
+            captureStart = ObjectPose; handToObject = relative; LastHandWorld = world;
+            Owner = hand; State = ProbeState.Held; HasValidCaptureSample = true; return true;
         }
-
         public bool MoveCapture(HandId hand, Pose3 miniatureHand)
         {
-            // A foreign input must not invalidate the current owner's last sample.
             if (IsPaused || State != ProbeState.Held || Owner != hand || !ValidHand(hand)) return false;
-            // Keep the last renderable pose, but never reward a release based on stale input.
-            // A later valid sample can recover the current capture without a teleport.
-            HasValidCaptureSample = false;
+            HasValidCaptureSample = false; // Invalid input must never authorize a stale release.
             if (!miniatureHand.IsValid) return false;
-            Pose3 candidate;
-            Pose3 world;
+            Pose3 candidate, world;
             try
             {
                 Pose3 canonical = Map.FromMiniature(miniatureHand);
@@ -86,40 +72,35 @@ namespace RoomBreakers.Core
                 world = Map.RoomView(canonical);
             }
             catch (ArgumentException) { return false; }
-            if (!bounds.Contains(candidate.Position) || !CanRepresent(Map, candidate)) return false;
-            ObjectPose = candidate;
-            LastHandWorld = world;
-            HasValidCaptureSample = true;
-            return true;
+            if (!CanMoveTo(candidate)) return false;
+            ObjectPose = candidate; LastHandWorld = world; HasValidCaptureSample = true; return true;
         }
+        // Used by the encounter, never by a render view. A held/paused/resolved entity cannot advance.
+        public bool TryAdvance(Pose3 next)
+        {
+            if (IsPaused || State != ProbeState.Available || !CanMoveTo(next)) return false;
+            ObjectPose = next; return true;
+        }
+        private bool CanMoveTo(Pose3 candidate) => candidate.IsValid && bounds.Contains(candidate.Position) &&
+            CanRepresent(Map, candidate) && MotionAllowed(ObjectPose.Position, candidate.Position);
+        private bool MotionAllowed(Vector3 from, Vector3 to) => motionConstraint == null || motionConstraint(from, to);
 
-        // Adapters must deliver a current valid sample before release, or cancel when
-        // tracking is stale. This domain guard handles explicitly rejected samples;
-        // it cannot detect missing sensor callbacks without an adapter watchdog.
         public bool ReleaseCapture(HandId hand)
         {
             if (IsPaused || State != ProbeState.Held || Owner != hand || !ValidHand(hand)) return false;
             if (!CanReturn) { CancelCapture(hand); return false; }
             var returnedPose = new Pose3(ReturnCenter, ObjectPose.Rotation);
-            if (!CanRepresent(Map, returnedPose)) { CancelCapture(hand); return false; }
-            ObjectPose = returnedPose;
-            Owner = HandId.None;
-            State = ProbeState.Returned;
-            HasValidCaptureSample = false;
-            ReturnCount++;
-            return true;
+            if (!CanMoveTo(returnedPose)) { CancelCapture(hand); return false; }
+            ObjectPose = returnedPose; Owner = HandId.None; State = ProbeState.Returned;
+            HasValidCaptureSample = false; ReturnCount++; return true;
         }
-
         public bool CancelCapture(HandId hand)
         {
             if (State != ProbeState.Held || Owner != hand || !ValidHand(hand)) return false;
-            ObjectPose = captureStart;
-            Owner = HandId.None;
-            State = ProbeState.Available;
-            HasValidCaptureSample = false;
-            return true;
+            // Cancellation is a rollback to known state, not a physical throw or motion command.
+            ObjectPose = captureStart; Owner = HandId.None; State = ProbeState.Available;
+            HasValidCaptureSample = false; return true;
         }
-
         public void SetPause(PauseReason reason, bool enabled)
         {
             const PauseReason known = PauseReason.User | PauseReason.TrackingLost | PauseReason.FocusLost | PauseReason.Placement | PauseReason.Menu;
@@ -132,34 +113,23 @@ namespace RoomBreakers.Core
             }
             else PauseReasons &= ~reason;
         }
-
         public bool Recalibrate(DualScaleMap map)
         {
             if (map == null || !IsPaused || State == ProbeState.Held) return false;
-            // Validate all restorable poses before replacing either frame.
             if (!CanRepresent(map, initialPose) || !CanRepresent(map, ObjectPose) || !CanRepresent(map, new Pose3(ReturnCenter, Quaternion.Identity))) return false;
-            Map = map;
-            return true;
+            Map = map; return true;
         }
-
         public void Tick(float deltaSeconds)
         {
             if (!SpatialMath.IsFinite(deltaSeconds) || deltaSeconds < 0f) throw new ArgumentOutOfRangeException(nameof(deltaSeconds));
-            if (!IsPaused) ElapsedSeconds += Math.Min(deltaSeconds, 0.1f);
+            if (!IsPaused) ElapsedSeconds += Math.Min(deltaSeconds, .1f);
         }
-
         public void Reset()
         {
-            ObjectPose = initialPose;
-            Owner = HandId.None;
-            State = ProbeState.Available;
-            ReturnCount = 0;
-            ElapsedSeconds = 0;
-            LastHandWorld = Pose3.Identity;
-            HasValidCaptureSample = false;
-            // Preserve pause reasons. Reset must not resume a tracking/focus fault.
+            ObjectPose = initialPose; Owner = HandId.None; State = ProbeState.Available;
+            ReturnCount = 0; ElapsedSeconds = 0; LastHandWorld = Pose3.Identity; HasValidCaptureSample = false;
+            // Preserve independent focus, tracking, menu and user pauses.
         }
-
         private static bool CanRepresent(DualScaleMap map, Pose3 canonical)
         {
             try { return map.RoomView(canonical).IsValid && map.MiniatureView(canonical).IsValid; }
