@@ -10,6 +10,7 @@ namespace RoomBreakers.UnityInput
         [SerializeField] private FirstEncounterRig rig;
         private Vector2 mouse;
         private Vector3 lastPoint;
+        private Quaternion gripRotation = Quaternion.identity;
         private Plane plane;
         private bool pressed, hasPlane, releasePending, focused = true;
         private long sequence;
@@ -24,15 +25,30 @@ namespace RoomBreakers.UnityInput
             Event e = Event.current; mouse = e.mousePosition;
             if (e.type == EventType.MouseDown && e.button == 0)
             {
+                hasPlane = false;
                 if (rig.TryPickDesktop(Ray(), out Vector3 point, out bool menu))
                 {
                     lastPoint = point; plane = new Plane(menu ? rig.ViewCamera.transform.forward : Vector3.up, point); hasPlane = true;
+                    if (!menu && rig.Game != null)
+                    {
+                        var q = rig.Game.Session.Map.MiniatureView(rig.Game.Session.ObjectPose).Rotation;
+                        gripRotation = new Quaternion(q.X, q.Y, q.Z, q.W);
+                    }
+                    else gripRotation = Quaternion.identity;
                 }
                 pressed = true; releasePending = false;
             }
             else if (e.type == EventType.MouseUp && e.button == 0) { pressed = false; releasePending = true; }
             else if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Escape)
-            { rig.Game?.Controls.CancelInteraction(); pressed = hasPlane = releasePending = false; }
+            { rig.Game?.Controls.CancelInteraction(); pressed = hasPlane = releasePending = false; e.Use(); }
+            else if (e.type == EventType.KeyDown && pressed && rig.Game != null && rig.Game.ActiveIsReflector &&
+                (e.keyCode == KeyCode.Q || e.keyCode == KeyCode.E))
+            {
+                var q = rig.Game.Session.Map.Miniature.Origin.Rotation;
+                Vector3 axis = new Quaternion(q.X, q.Y, q.Z, q.W) * Vector3.up;
+                gripRotation = Quaternion.AngleAxis(e.keyCode == KeyCode.Q ? -15 : 15, axis) * gripRotation;
+                e.Use();
+            }
 #endif
         }
         private void LateUpdate()
@@ -52,7 +68,7 @@ namespace RoomBreakers.UnityInput
                 if (hoverPlane.Raycast(ray, out float enter)) lastPoint = ray.GetPoint(enter); else valid = false;
             }
             latest = new HandSample(HandId.Right, ++sequence, Time.realtimeSinceStartupAsDouble,
-                UnitySpatialFrame.Pose(lastPoint, Quaternion.identity), pressed ? 1 : 0, valid);
+                UnitySpatialFrame.Pose(lastPoint, gripRotation), pressed ? 1 : 0, valid);
             if (releasePending) { releasePending = false; hasPlane = false; }
 #endif
         }
