@@ -4,13 +4,25 @@
 
 **Estado: encuentro ampliado implementado en código con Motes, Shell, reflector, ayudas contextuales y progreso local. El núcleo se compila/prueba con .NET; presentación Unity y adaptadores Meta/MRUK todavía no se han compilado o ejecutado en Unity/Quest. No hay APK ni entrega final validada.** El nombre es provisional; no hay garantía de premio. [Evidencia actual](docs/ESTADO.md).
 
-## Demo: empieza aquí
+## Nuevo: preparar la integración real
+
+Con un Unity 6 instalado/activado, el proyecto cerrado y `UNITY_EDITOR` apuntando a su ejecutable:
+
+```bash
+python3 tools/setup_unity_project.py --create
+```
+
+El script deja que Unity cree el proyecto faltante, conecta el paquete local preservando dependencias y prepara la escena `Assets/RoomBreakersGenerated/DesktopEncounter.unity`. No sobrescribe escenas existentes, no cambia de editor silenciosamente y no fabrica metadata. Abrir esa escena en Unity y pulsar Play es el siguiente recorrido a comprobar.
+
+Con Test Framework instalado, añadir `--verify` ejecuta las 12 pruebas EditMode y cuatro nuevas pruebas PlayMode de integración. **El preparador C# y esos tests PlayMode están escritos pero todavía no se han ejecutado en Unity aquí.** [Arranque, requisitos, fuentes y recuperación](docs/ARRANQUE_UNITY.md).
+
+## Demo
 
 LOAD ROOM → maqueta/portal/ruta → tutorial de captura → tres Motes devueltos → orientar reflector → devolver el pulso de Shell → capturarlo vulnerable → devolverlo al portal → resultado. Tres fallos que consuman la integridad del refugio terminan el encuentro. Pausa, reinicio confirmado y recolocación mantienen una sola autoridad de juego.
 
-**Nuevo: [Pip, feedback y progreso local](docs/EXPERIENCIA_PROGRESO.md).** Pip adapta sus instrucciones a lo que realmente está pasando y refuerza la ayuda cuando no avanzas. Arcos y marcas señalan el objetivo correspondiente en ambas escalas. Terminar una partida registra un solo resultado; una, tres y cinco victorias añaden piezas cosméticas al faro del refugio. No hay recompensas por velocidad ni progreso obtenido al perder el seguimiento.
+[Pip, feedback y progreso local](docs/EXPERIENCIA_PROGRESO.md): Pip adapta sus instrucciones a lo que realmente está pasando y refuerza la ayuda cuando no avanzas. Arcos y marcas señalan el objetivo correspondiente en ambas escalas. Terminar una partida registra un solo resultado; una, tres y cinco victorias añaden piezas cosméticas al faro del refugio. No hay recompensas por velocidad ni progreso obtenido al perder el seguimiento.
 
-**[Shell y reflector](docs/SHELL_REFLECTOR.md)** explica el combate y sus límites. **[Primer encuentro](docs/PRIMER_ENCUENTRO.md)** documenta la base de geometría/Motes.
+[Shell y reflector](docs/SHELL_REFLECTOR.md) explica el combate y sus límites. [Primer encuentro](docs/PRIMER_ENCUENTRO.md) documenta la base de geometría/Motes.
 
 Con el [paquete local](unity/Packages/com.zh.room-breakers/README.md) instalado en Unity:
 
@@ -31,6 +43,7 @@ Editor, builds Development, salas sintéticas y modo básico usan progreso de pr
 
 | Necesitas | Documento |
 | --- | --- |
+| Preparar proyecto y pruebas de integración | [Arranque Unity](docs/ARRANQUE_UNITY.md) |
 | Contexto y decisiones | [Contexto](docs/CONTEXTO.md) |
 | Producto y diseño completo | [Producto](docs/PRODUCTO.md) · [Juego](docs/JUEGO.md) |
 | Trabajo de agentes | [AGENTS.md](AGENTS.md) · [Inicio](prompts/INICIO.md) |
@@ -73,15 +86,16 @@ for project in validation/RoomBreakers.*.Tests/*.csproj; do
 done
 ```
 
-Las suites compilan los archivos reales de `Runtime/Core` como .NET Standard 2.1. Usan salas/entradas sintéticas; Experience y ProgressRecovery también hacen operaciones reales en archivos temporales. **No compilan UnityEngine/SDKs Meta ni prueban almacenamiento Android, gráficos o sensores.** Los resultados y ejecuciones concretos están en [ESTADO](docs/ESTADO.md), no se deducen de que exista un archivo de pruebas.
+Las suites compilan los archivos reales de `Runtime/Core` como .NET Standard 2.1. Usan salas/entradas sintéticas; Experience y ProgressRecovery también hacen operaciones reales en archivos temporales. **No compilan UnityEngine/SDKs Meta ni prueban almacenamiento Android, gráficos o sensores.** Los resultados y ejecuciones concretos están en [ESTADO](docs/ESTADO.md).
 
-Para los 12 casos EditMode previos, cuando exista el proyecto/editor real:
+Con proyecto/editor reales y Test Framework instalado:
 
 ```bash
-python3 tools/run_unity_checks.py
+python3 tools/run_unity_checks.py --platform EditMode
+python3 tools/run_unity_checks.py --platform PlayMode
 ```
 
-El verificador no da PASS si falta el editor o el resultado. Su requisito mínimo sigue centrado en cuatro tests de transformación; revisar también los ocho UnityInputFrameTests. No ejecuta Play Mode, APK ni Quest. [Alcance de autochecks](docs/AUTOCHECKS.md).
+El verificador exige los 12 casos EditMode anteriores o los cuatro casos PlayMode nuevos, según el modo. Rechaza resultados antiguos/incompletos y comprueba la versión real del editor. No ejecuta APK ni Quest. Las pruebas PlayMode usan componentes Unity reales y proveedores sintéticos explícitos, con progreso aislado en memoria. [Alcance de autochecks](docs/AUTOCHECKS.md).
 
 ## Trabajo y privacidad del repositorio
 
