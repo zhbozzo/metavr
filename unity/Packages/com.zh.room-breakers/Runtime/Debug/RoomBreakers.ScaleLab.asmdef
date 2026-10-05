@@ -1,0 +1,5 @@
+{
+  "name": "RoomBreakers.ScaleLab",
+  "rootNamespace": "RoomBreakers.ScaleLab",
+  "references": ["RoomBreakers.Core"]
+}

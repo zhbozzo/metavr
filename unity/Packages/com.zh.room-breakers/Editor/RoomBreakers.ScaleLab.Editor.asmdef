@@ -1,0 +1,6 @@
+{
+  "name": "RoomBreakers.ScaleLab.Editor",
+  "rootNamespace": "RoomBreakers.ScaleLab.Editor",
+  "references": ["RoomBreakers.ScaleLab"],
+  "includePlatforms": ["Editor"]
+}
