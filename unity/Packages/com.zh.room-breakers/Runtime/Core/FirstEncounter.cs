@@ -6,8 +6,7 @@ namespace RoomBreakers.Core
 {
     public enum EncounterPhase { LearnCapture, Defending, Won, Lost, RoomInvalid, Reflector, ShellVulnerable }
 
-    // One encounter authority. Its active interactable changes from Mote to reflector to vulnerable Shell.
-    // This is not a separate simulation for each rendered scale. Old input ownership never crosses stages.
+    // One authority and one active interactable; render views never simulate gameplay.
     public sealed class FirstEncounter
     {
         private long observedRestart;
@@ -15,6 +14,8 @@ namespace RoomBreakers.Core
         private readonly float spawnDistance, speed;
         private readonly ReflectionLane reflectionLane;
         private int moteMisses;
+        // Local attempt identity, not a user/device identifier. Changes only on deliberate restart.
+        public Guid RunId { get; private set; } = Guid.NewGuid();
         public RoomPlan Plan { get; }
         public ScaleSession Session { get; private set; }
         public HarnessControls Controls { get; private set; }
@@ -37,7 +38,6 @@ namespace RoomBreakers.Core
             new Pose3(Duel.Lane.ReflectorPosition, Duel.ReflectorRotation);
         public float DistanceTravelled => distance;
 
-        // Basic three-Mote mode remains available for regression/practice; device and desktop demo opt into Shell.
         public FirstEncounter(RoomPlan plan, DualScaleMap map, float metersPerSecond = .18f, bool includeShell = false)
         {
             Plan = plan ?? throw new ArgumentNullException(nameof(plan));
@@ -73,6 +73,7 @@ namespace RoomBreakers.Core
             if (observedRestart != Controls.RestartSerial)
             {
                 DualScaleMap map = Session.Map; PauseReason pauses = Session.PauseReasons;
+                RunId = Guid.NewGuid();
                 Captured = Missed = moteMisses = 0; ActiveSeconds = 0; distance = spawnDistance; CreatureSerial++; Duel = null;
                 Phase = RoomInvalidated ? EncounterPhase.RoomInvalid : EncounterPhase.LearnCapture;
                 BindSession(map, new Pose3(Plan.PositionAt(spawnDistance), Quaternion.Identity), CaptureBehavior.ReturnToTarget, pauses);
@@ -80,7 +81,6 @@ namespace RoomBreakers.Core
             }
             if (!CreatureVisible) { Controls.Capture.Cancel(); return effect; }
             if (Session.IsPaused) return effect;
-            // Rejected orientation samples cannot continue combat using a stale orientation.
             if (Session.State == ProbeState.Held && !Session.HasValidCaptureSample) return effect;
             float dt = Math.Min(deltaSeconds, .1f);
             Session.Tick(dt); ActiveSeconds += dt;
