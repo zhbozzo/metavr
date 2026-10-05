@@ -6,7 +6,7 @@ using NQuaternion = System.Numerics.Quaternion;
 
 namespace RoomBreakers.UnityInput
 {
-    // Uses an existing camera/hand rig. Does not configure XR providers or passthrough implicitly.
+    // Existing camera/hand rig required. Never configures XR providers or passthrough implicitly.
     public sealed class FirstEncounterRig : MonoBehaviour
     {
         [SerializeField] private RoomSource roomSource;
@@ -71,6 +71,12 @@ namespace RoomBreakers.UnityInput
         private void LateUpdate()
         {
             if (visuals == null || !isActiveAndEnabled) return;
+            // A first frame looking straight up/down must not strand the loading control at world zero.
+            if (uiFrame == null)
+            {
+                PlaceBoot(); boot.SetActive(uiFrame != null);
+                if (uiFrame == null) return;
+            }
             HandSample left = Read(leftSource), right = Read(rightSource); double now = Time.realtimeSinceStartupAsDouble;
             if (game != null && (roomSource.State != RoomSourceState.Ready || acceptedRevision != roomSource.Revision))
             {
@@ -81,8 +87,7 @@ namespace RoomBreakers.UnityInput
                 boot.SetActive(true);
                 if (roomSource.State == RoomSourceState.Ready && plannedRevision != roomSource.Revision)
                 {
-                    plannedRevision = roomSource.Revision;
-                    TryStartEncounter();
+                    plannedRevision = roomSource.Revision; TryStartEncounter();
                     if (game != null) return;
                 }
                 bootText.text = (planningError ?? roomSource.Status) + "\n\nLOAD ROOM\nPinch the blue token, then open.";
@@ -126,8 +131,13 @@ namespace RoomBreakers.UnityInput
                 Debug.LogException(e, this);
             }
         }
-        private SpatialFrame CenteredFrame(SpatialFrame table, float scale) => new SpatialFrame(new Pose3(
-            table.Origin.Position - NVector.Transform(canonicalCenter * scale, table.Origin.Rotation), table.Origin.Rotation), scale);
+        private SpatialFrame CenteredFrame(SpatialFrame table, float scale)
+        {
+            // Keep the miniature's compass direction aligned with the room. The UI may face the player,
+            // but multiplying the room by head yaw again would put its portal on the wrong miniature side.
+            NQuaternion rotation = roomSource.WorldFrame.Origin.Rotation;
+            return new SpatialFrame(new Pose3(table.Origin.Position - NVector.Transform(canonicalCenter * scale, rotation), rotation), scale);
+        }
         private void Reposition()
         {
             Pose3 head = UnitySpatialFrame.Pose(playerCamera.transform.position, playerCamera.transform.rotation);
@@ -167,7 +177,7 @@ namespace RoomBreakers.UnityInput
         public bool TryPickDesktop(Ray ray, out Vector3 point, out bool menu)
         {
             point = Vector3.zero; menu = false; float best = float.MaxValue;
-            if (game == null && loadToken != null) Pick(ray, loadToken.position, .06f, true, ref best, ref point, ref menu);
+            if (game == null && loadToken != null && uiFrame != null) Pick(ray, loadToken.position, .06f, true, ref best, ref point, ref menu);
             else if (view != null)
             {
                 foreach (ControlTarget target in view.Panel.Targets)
