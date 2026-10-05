@@ -1,6 +1,6 @@
 {
   "name": "RoomBreakers.Core.UnityTests",
-  "references": ["RoomBreakers.Core", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
+  "references": ["RoomBreakers.Core", "RoomBreakers.UnityInput", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
   "includePlatforms": ["Editor"],
   "overrideReferences": true,
   "precompiledReferences": ["nunit.framework.dll"],
