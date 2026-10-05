@@ -1,6 +1,6 @@
 # Interacción de manos — incremento 003
 
-Estado: lógica C# implementada y probada; adaptador Meta y presentación Unity escritos, todavía sin import/compilación Unity ni ejecución en Quest. El recorrido de abajo es un procedimiento preparado, no una prueba observada.
+Estado: lógica C# implementada y probada; adaptador Meta y presentación Unity escritos, todavía sin import/compilación Unity ni ejecución en Quest. El recorrido de abajo es un procedimiento preparado, no una prueba observada. El incremento posterior [Controles](CONTROLES.md) añade la UI de pausa, reinicio y recolocación al mismo harness.
 
 ## Qué aporta
 
@@ -33,9 +33,9 @@ La integración es opcional: `RoomBreakers.MetaHands` y su editor se habilitan c
 5. En Play Mode, espera datos válidos y mira hacia delante. El contenido virtual de prueba se coloca una vez: maqueta próxima y representación grande delante. No es un escaneo ni un detector de obstáculos. El contenido no debe motivar caminar ni tocar mobiliario.
 6. Abre una mano, acerca pulgar/índice al cubo pequeño, pinza y mueve al aro. Al abrir los dedos debe retornar una vez. Alejarse del destino cancela. Oculta la mano durante la captura: debe cancelarse, sin premio ni lanzamiento, y pedir apertura de mano al volver.
 
-Los controles de desarrollo están en el Inspector de `HandsScaleRig`: pausa, reanudar, reiniciar, cancelar, confirmar y recentrar. Sus métodos públicos pueden enlazarse a UI espacial. **Estos botones no constituyen un menú hands-first dentro del visor.** Esa UI, el modelo de mano ampliada y el room scan siguen pendientes.
+El código actual añade fichas **PAUSE/RESUME, RESTART y MOVE** dentro de la escena. RESTART y MOVE requieren confirmación. Funcionamiento y límites en [CONTROLES](CONTROLES.md). Los botones del Inspector se conservan para depuración y recuperación estructural del rig; no son la UI normal de interacción. La nueva UI espacial todavía no se ha compilado ni observado en el visor. El modelo de mano ampliada y el room scan siguen pendientes.
 
-`UnitySpatialFrame` rechaza jerarquías con escalas negativas, no uniformes o inválidas y exige escala uno para la habitación. Cambiar marcos durante juego pausa hasta confirmación; no se arregla una sola vista con offsets. `HandsHarnessPlacement` coloca solo elementos virtuales y conserva una pausa previa del usuario/foco.
+`UnitySpatialFrame` rechaza jerarquías con escalas negativas, no uniformes o inválidas y exige escala uno para la habitación. Cambiar marcos durante juego pausa hasta confirmación; no se arregla una sola vista con offsets. `HandsHarnessPlacement` coloca solo elementos virtuales y conserva una pausa previa del usuario/foco. La colocación inicial configura ambas representaciones; la ficha MOVE posterior cambia solamente la maqueta.
 
 ## Pruebas disponibles
 
@@ -43,9 +43,9 @@ Los controles de desarrollo están en el Inspector de `HandsScaleRig`: pausa, re
 dotnet run --project validation/RoomBreakers.HandInput.Tests/RoomBreakers.HandInput.Tests.csproj --configuration Release
 ```
 
-46 casos del controlador, incluyendo 5.000 frames de entrada con semilla fija dentro de un caso. Se ejecutan sobre código C# real con entradas sintéticas; no compilan el adaptador Meta ni la presentación Unity. Se suman a los 49 + 15 casos anteriores: 110 casos C#.
+46 casos del controlador, incluyendo 5.000 frames de entrada con semilla fija dentro de un caso. Se ejecutan sobre código C# real con entradas sintéticas; no compilan el adaptador Meta ni la presentación Unity. En el incremento 003 se sumaron a los 49 + 15 casos anteriores: 110 casos C#. El total actual y la suite de controles posterior figuran en ESTADO.
 
-Se añadieron ocho casos Unity `UnityInputFrameTests`, en la misma assembly EditMode que los cuatro casos anteriores. Comprueban jerarquías reales y el recorrido mano→maqueta sin doble transformación. Estado: NOT RUN. `tools/run_unity_checks.py` ejecuta la assembly cuando el proyecto/editor y los tests del paquete están configurados; no es una prueba de hardware.
+Se añadieron ocho casos Unity `UnityInputFrameTests`, en la misma assembly EditMode que los cuatro casos anteriores. Comprueban jerarquías reales y el recorrido mano→maqueta sin doble transformación. Estado: NOT RUN. `tools/run_unity_checks.py` ejecuta la assembly cuando el proyecto/editor y los tests del paquete están configurados; no es una prueba de hardware. Comprobar en Test Runner que se ejecutan los ocho casos nuevos además de los cuatro originales.
 
 ## Fuentes oficiales revisadas
 
