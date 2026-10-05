@@ -78,9 +78,21 @@ class UnityCheckRunnerTests(unittest.TestCase):
             self.assertEqual(execute(Path("unused"), self.root, self.root, 5).status, "FAIL")
 
     def test_exit_failure_even_with_results_fails(self):
-        self.fixture()
-        with mock.patch("tools.run_unity_checks.subprocess.run", return_value=subprocess.CompletedProcess([], 1)):
+        def failed_process(*args, **kwargs):
+            self.fixture()
+            return subprocess.CompletedProcess([], 1)
+        with mock.patch("tools.run_unity_checks.subprocess.run", side_effect=failed_process) as launch:
             self.assertEqual(execute(Path("unused"), self.root, self.root, 5).status, "FAIL")
+            launch.assert_called_once()
+
+    def test_fresh_complete_report_and_successful_process_are_both_required(self):
+        def completed_process(*args, **kwargs):
+            self.fixture()
+            return subprocess.CompletedProcess([], 0)
+        with mock.patch("tools.run_unity_checks.subprocess.run", side_effect=completed_process):
+            result = execute(Path("unused"), self.root, self.root, 5)
+            self.assertEqual(result.status, "PASS")
+            self.assertEqual(result.cases, 12)
 
     def test_timeout_fails(self):
         with mock.patch("tools.run_unity_checks.subprocess.run", side_effect=subprocess.TimeoutExpired([], 5)):
