@@ -1,42 +1,68 @@
 # Comprobación automática, no ausencia de comprobación
 
-## Ejecutar sin revisar manualmente cada paso
+Actualización: incremento 008, 5 de octubre de 2026. La evidencia ejecutada está en [ESTADO](ESTADO.md). Tener archivos de prueba no significa que esas pruebas hayan corrido.
 
-Los pushes y PRs configurados ejecutan las pruebas del núcleo C# y las comprobaciones Python. Las suites prueban el código, no un visor. No es una certificación de ausencia de errores.
+## Núcleo y herramientas
+
+Los PRs configurados ejecutan comprobaciones Python y las suites C# del dominio:
 
 ```bash
 python3 tools/check_repo.py
 python3 -m unittest discover -s tests -v
-dotnet run --project validation/RoomBreakers.Core.Tests/RoomBreakers.Core.Tests.csproj --configuration Release
-dotnet run --project validation/RoomBreakers.Hardening.Tests/RoomBreakers.Hardening.Tests.csproj --configuration Release
+for project in validation/RoomBreakers.*.Tests/*.csproj; do
+  dotnet run --project "$project" --configuration Release || exit 1
+done
 ```
 
-La suite nueva contiene 15 tests. Dos de ellos ejecutan 5.000 transformaciones 6DoF y 20.000 comandos entrelazados con semillas fijas. Son iteraciones dentro de tests, no usuarios, habitaciones ni pruebas físicas. Incluye casos que fallaban en el código anterior: soltar usando una posición válida antigua tras rechazar un movimiento y aceptar configuraciones/poses que no pueden representarse en ambas vistas.
+El C# compila `Runtime/Core` como .NET Standard 2.1. Manos/salas son datos sintéticos; las suites de persistencia escriben archivos temporales reales, no almacenamiento Android. Las iteraciones aleatorias dentro de un caso no son usuarios ni pruebas físicas. No se compilan UnityEngine o el SDK Meta en estos comandos.
 
-## Cuando exista un proyecto Unity real
+## Preparar proyecto, paquete y escena mediante Unity
 
 ```bash
-python3 tools/run_unity_checks.py
+python3 tools/setup_unity_project.py --create
 ```
 
-Lee `unity/RoomBreakers/ProjectSettings/ProjectVersion.txt` y busca ese editor exacto en ubicaciones habituales. No elige automáticamente otra versión ni instala software. Para otra ruta, usar `--project` y/o `--unity`, o `UNITY_EDITOR`. Al indicar un ejecutable explícito, comprobar que coincide con la versión del proyecto.
+Requiere un editor Unity 6 instalado/activado, `UNITY_EDITOR` o `--unity` apuntando al ejecutable, y proyecto cerrado. Deja que Unity genere un proyecto faltante en un destino vacío, conecta el paquete local y guarda una escena nueva mediante el editor. No elige otro editor, elimina carpetas no vacías, sobrescribe una escena existente o instala SDKs Meta. El comprobante de preparación es específico de la ejecución e incluye un nonce; un exit code cero no basta.
 
-Requisitos: licencia/editor configurados, proyecto real, paquete local importado y tests del paquete visibles mediante `testables` según el README del paquete. Cerrar el proyecto en Unity antes de ejecutarlo en batch. Un agente local puede ejecutar este comando sin pedir confirmación repetida, pero no aceptar acuerdos ni credenciales por el propietario.
+Con Test Framework instalado:
 
-El script ejecuta únicamente `RoomBreakers.Core.UnityTests` en EditMode. Revisa el resultado XML de NUnit y exige los casos de correspondencia con Transform y mano ampliada. No considera éxito que el proceso salga con código cero si faltan resultados, se omiten tests, no se ejecuta nuestra suite o hay fallos. Los informes se generan en carpetas nuevas bajo `.validation-local/`, excluidas de Git, sin subir rutas de máquina ni logs automáticamente.
+```bash
+python3 tools/setup_unity_project.py --create --verify
+```
 
-Salida: PASS y código 0, FAIL y código 1, BLOCKED y código 2. BLOCKED no significa aprobado. Importar, renderizar, usar manos reales, construir Android y perfilar en Quest son verificaciones diferentes. El script no ejecuta PlayMode, no crea un APK ni mide comodidad.
+El modificador `--verify` añade las dos suites reales del motor. Si falta Test Framework se solicita una versión explícita o instalación en Package Manager, sin usar latest ni cambiar otro pin. [Procedimiento, límites y fuentes](ARRANQUE_UNITY.md).
 
-Los 16 tests Python de este script usan informes sintéticos y mocks del lanzamiento del proceso; validan el propio verificador y nunca se presentan como una ejecución de Unity.
+## Ejecutar Unity por separado
 
-## Límite que sigue abierto
+```bash
+python3 tools/run_unity_checks.py --platform EditMode
+python3 tools/run_unity_checks.py --platform PlayMode
+```
 
-La lógica ahora rechaza la devolución después de recibir explícitamente una muestra inválida. Si el sensor deja de enviar callbacks, el futuro adaptador debe detectar el silencio y pausar/cancelar. Este cambio no pretende resolver un sensor que todavía no se ha integrado.
+El script lee ProjectVersion y verifica la versión del ejecutable con `-version`, incluso cuando el usuario proporciona una ruta explícita. Rechaza un proyecto abierto, una versión distinta o desconocida y resultados antiguos. No cambia la versión del proyecto.
 
-## Fuentes de interfaz verificadas el 4 de octubre de 2026
+**EditMode** selecciona `RoomBreakers.Core.UnityTests` y exige los cuatro casos originales de transformaciones **y los ocho UnityInputFrameTests**. El mínimo anterior de cuatro casos ya no basta. Pruebas omitidas, fallidas, inconclusas o identificadores duplicados no pasan.
 
-- [Unity: ejecución de tests desde terminal](https://docs.unity.com/en-us/engine/6000.3/manual/scripting/test-framework-introduction/running-tests/run-tests-from-command-line).
-- [Unity: referencia de argumentos](https://docs.unity.com/en-us/engine/6000.7/manual/scripting/test-framework-introduction/reference-command-line): `-batchmode`, `-runTests`, `-assemblyNames`, `-testPlatform`, `-testResults`; no usar `-quit` durante la ejecución de tests.
-- [Microsoft: dotnet run](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-run).
+**PlayMode** selecciona `RoomBreakers.Integration.PlayTests` y exige los cuatro casos de integración: arranque con pinza, ambas representaciones, recorrido Motes/Shell/victoria/reinicio e interrupción/invalidez de habitación. Usa el FirstEncounterRig real con fuentes de prueba sintéticas, escenas temporales y progreso aislado en memoria. No afirma que el ratón o una mano sintética equivalgan a una prueba de sensores.
 
-Estas referencias explican interfaces; no establecen que se haya instalado esa versión del editor ni que el paquete Meta sea compatible con ella. La compatibilidad real permanece por verificar.
+No se usa `-quit` durante tests, porque puede detenerlos antes de completar. PlayMode conserva un dispositivo gráfico; el script está pensado para una estación de desarrollo con entorno gráfico válido. No se rebaja a .NET cuando Unity no puede arrancar.
+
+Salida del verificador: PASS/código 0, FAIL/1, BLOCKED/2. El preparador sin `--verify` usa PREPARED/0, que significa solamente preparación, no pruebas del motor aprobadas. Sus logs y comprobantes se guardan bajo `.validation-local/`, sin publicarlos automáticamente. Pueden contener rutas del equipo; inspeccionarlos antes de compartir.
+
+## Pruebas del propio verificador
+
+Los tests Python de las herramientas utilizan XML y respuestas de procesos sintéticos, además de operaciones de archivos temporales reales. No ejecutan Unity. El caso de regresión de informe incompleto comprueba que cuatro tests correctos ya no ocultan la ausencia de los otros ocho. Otro caso verifica que un XML previo no autorice un lanzamiento nuevo que no produjo resultados.
+
+La prueba de salida de proceso fallida escribe un XML nuevo durante el proceso simulado; así sigue probando esa condición, no solo la protección contra XML antiguo. Los escenarios de preparación cubren rutas con espacios, manifest cambiado, paquetes duplicados, copias de respaldo, no-op sin reescritura, editor incorrecto, destino no vacío y comprobantes que no corresponden a la ejecución.
+
+## Límites
+
+No se han ejecutado todavía las 12 pruebas EditMode ni las cuatro nuevas PlayMode en un editor real en este entorno. No hay APK, soporte Quest certificado, prueba de comodidad, gráficos evaluados o perfil de rendimiento. El código del watchdog de manos sí existe en el dominio, pero no reemplaza el ensayo del proveedor Meta real.
+
+## Referencias de interfaz
+
+- [Unity 6: argumentos de editor](https://docs.unity3d.com/6000.0/Documentation/Manual/EditorCommandLineArguments.html).
+- [Test Framework: comandos](https://docs.unity3d.com/Packages/com.unity.test-framework@1.4/manual/reference-command-line.html).
+- [Dependencias de carpeta local](https://docs.unity3d.com/6000.0/Documentation/Manual/upm-localpath.html).
+
+Revisadas el 5 de octubre de 2026. Describen interfaces, no una instalación probada de Unity/Meta. La documentación antigua de este archivo se conserva en el historial Git.
