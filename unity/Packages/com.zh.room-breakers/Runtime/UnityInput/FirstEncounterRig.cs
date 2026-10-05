@@ -13,6 +13,8 @@ namespace RoomBreakers.UnityInput
         [SerializeField] private HandSampleSource leftSource, rightSource;
         [SerializeField] private Camera playerCamera;
         [SerializeField] private Shader prototypeShader;
+        [SerializeField, Tooltip("Disable only for the original three-Mote practice encounter.")]
+        private bool includeShell = true;
         private FirstEncounter game;
         private FirstEncounterView view;
         private GameObject visuals, boot;
@@ -32,9 +34,7 @@ namespace RoomBreakers.UnityInput
         public Camera ViewCamera => playerCamera;
         public SpatialFrame UiFrame => uiFrame;
         public void Configure(RoomSource room, HandSampleSource left, HandSampleSource right, Camera camera, Shader shader)
-        {
-            roomSource = room; leftSource = left; rightSource = right; playerCamera = camera; prototypeShader = shader;
-        }
+        { roomSource = room; leftSource = left; rightSource = right; playerCamera = camera; prototypeShader = shader; }
         private void Start()
         {
             try
@@ -44,7 +44,7 @@ namespace RoomBreakers.UnityInput
                 if (prototypeShader == null) throw new InvalidOperationException("Assign a serialized unlit shader; do not rely on a stripped runtime Shader.Find.");
                 font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
                 if (font == null) throw new InvalidOperationException("Prototype font unavailable.");
-                visuals = new GameObject("ROOMBREAKERS first encounter runtime"); // Deliberate world-space identity root.
+                visuals = new GameObject("ROOMBREAKERS encounter runtime");
                 boot = new GameObject("Room loading controls"); boot.transform.SetParent(visuals.transform, false);
                 loadToken = GameObject.CreatePrimitive(PrimitiveType.Sphere).transform; loadToken.SetParent(boot.transform, false);
                 loadToken.localScale = new Vector3(.12f, .07f, .035f); loadToken.GetComponent<Collider>().enabled = false;
@@ -71,7 +71,6 @@ namespace RoomBreakers.UnityInput
         private void LateUpdate()
         {
             if (visuals == null || !isActiveAndEnabled) return;
-            // A first frame looking straight up/down must not strand the loading control at world zero.
             if (uiFrame == null)
             {
                 PlaceBoot(); boot.SetActive(uiFrame != null);
@@ -113,13 +112,15 @@ namespace RoomBreakers.UnityInput
                 Pose3 headWorld = UnitySpatialFrame.Pose(playerCamera.transform.position, playerCamera.transform.rotation);
                 Pose3 canonicalHead = roomSource.WorldFrame.ToLocal(headWorld);
                 if (!RoomPlanner.TryPlan(roomSource.Snapshot, canonicalHead, out RoomPlan plan, out planningError)) return;
+                // Validate the reflection lesson before starting, not after the player completes the Motes.
+                if (includeShell && !ReflectionLane.TryCreate(plan, out _, out planningError)) return;
                 if (!MiniaturePlacement.TryInFrontOf(headWorld, new SpatialFrame(Pose3.Identity, 1), out SpatialFrame table))
                 { planningError = "Look forward and choose LOAD ROOM again."; return; }
                 var min = plan.Room.Floor.Min; var max = plan.Room.Floor.Max;
                 canonicalCenter = new NVector((min.X + max.X) * .5f, plan.ReturnCenter.Y, (min.Y + max.Y) * .5f);
                 float scale = Mathf.Clamp(.60f / Math.Max(max.X - min.X, max.Y - min.Y), .04f, .25f);
                 SpatialFrame miniature = CenteredFrame(table, scale);
-                game = new FirstEncounter(plan, new DualScaleMap(roomSource.WorldFrame, miniature));
+                game = new FirstEncounter(plan, new DualScaleMap(roomSource.WorldFrame, miniature), includeShell: includeShell);
                 game.Controls.SetExternalPause(PauseReason.FocusLost, !focused || suspended);
                 acceptedRevision = roomSource.Revision; uiFrame = table;
                 view = new FirstEncounterView(visuals.transform, game, font, prototypeShader);
@@ -133,8 +134,6 @@ namespace RoomBreakers.UnityInput
         }
         private SpatialFrame CenteredFrame(SpatialFrame table, float scale)
         {
-            // Keep the miniature's compass direction aligned with the room. The UI may face the player,
-            // but multiplying the room by head yaw again would put its portal on the wrong miniature side.
             NQuaternion rotation = roomSource.WorldFrame.Origin.Rotation;
             return new SpatialFrame(new Pose3(table.Origin.Position - NVector.Transform(canonicalCenter * scale, rotation), rotation), scale);
         }
@@ -148,10 +147,10 @@ namespace RoomBreakers.UnityInput
         {
             for (int v = 0; v < 2; v++)
             {
-                var root = new GameObject("Visible return zone " + v).transform; root.SetParent(visuals.transform, false); returnZones[v] = root;
+                var zone = new GameObject("Visible return zone " + v).transform; zone.SetParent(visuals.transform, false); returnZones[v] = zone;
                 for (int plane = 0; plane < 2; plane++)
                 {
-                    var line = new GameObject("Return circle").AddComponent<LineRenderer>(); line.transform.SetParent(root, false);
+                    var line = new GameObject("Return circle").AddComponent<LineRenderer>(); line.transform.SetParent(zone, false);
                     line.sharedMaterial = bootMaterial; line.useWorldSpace = false; line.loop = true; line.positionCount = 48;
                     line.startWidth = line.endWidth = .012f;
                     for (int i = 0; i < 48; i++)
@@ -170,10 +169,10 @@ namespace RoomBreakers.UnityInput
                 SpatialFrame frame = i == 0 ? game.Session.Map.Room : game.Session.Map.Miniature;
                 UnitySpatialFrame.ApplyPose(returnZones[i], frame.ToWorld(new Pose3(game.Plan.ReturnCenter, NQuaternion.Identity)));
                 returnZones[i].localScale = Vector3.one * frame.Scale;
-                returnZones[i].gameObject.SetActive(game.CreatureVisible);
+                returnZones[i].gameObject.SetActive(game.ShowReturnZone);
             }
         }
-        // Desktop-only adapter uses the same target coordinates and hand driver. No fake Meta data.
+        // Desktop uses the same active target: reflector while armored, Shell only when vulnerable.
         public bool TryPickDesktop(Ray ray, out Vector3 point, out bool menu)
         {
             point = Vector3.zero; menu = false; float best = float.MaxValue;
@@ -182,7 +181,8 @@ namespace RoomBreakers.UnityInput
             {
                 foreach (ControlTarget target in view.Panel.Targets)
                     Pick(ray, UnitySpatialFrame.Vector(target.Center), target.Radius, true, ref best, ref point, ref menu);
-                if (game.CreatureVisible) Pick(ray, view.MiniatureMotePosition, .04f, false, ref best, ref point, ref menu);
+                if (game.CreatureVisible)
+                    Pick(ray, UnitySpatialFrame.Vector(game.Session.Map.MiniatureView(game.Session.ObjectPose).Position), .04f, false, ref best, ref point, ref menu);
             }
             return best < float.MaxValue;
         }
