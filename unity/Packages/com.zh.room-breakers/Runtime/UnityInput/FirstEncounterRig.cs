@@ -6,7 +6,7 @@ using NQuaternion = System.Numerics.Quaternion;
 
 namespace RoomBreakers.UnityInput
 {
-    // Existing camera/hand rig required. Never configures XR providers or passthrough implicitly.
+    // Existing camera/hand rig required. Never configures providers or passthrough implicitly.
     public sealed class FirstEncounterRig : MonoBehaviour
     {
         [SerializeField] private RoomSource roomSource;
@@ -17,6 +17,8 @@ namespace RoomBreakers.UnityInput
         private bool includeShell = true;
         private FirstEncounter game;
         private FirstEncounterView view;
+        private EncounterExperience experience;
+        private ProgressJournal practiceProgress, deviceProgress;
         private GameObject visuals, boot;
         private Transform loadToken, bootLabel;
         private TextMesh bootText;
@@ -95,9 +97,11 @@ namespace RoomBreakers.UnityInput
                 if (bootInput.Step(now, left, right, loadTarget, allowed, HandId.None) == ControlAction.Confirm) LoadRoom();
                 return;
             }
-            view.Refresh(game, playerCamera, uiFrame);
+            // Build input targets once; render/audio/feedback only once after the authoritative step.
+            view.Panel.Refresh(uiFrame, game.Controls);
             ControlEffect effect = game.Step(now, Time.unscaledDeltaTime, left, right, view.Panel.Targets);
             if (effect == ControlEffect.RepositionRequested) Reposition();
+            experience.Observe();
             view.Refresh(game, playerCamera, uiFrame); RefreshReturnZones();
         }
         public void LoadRoom()
@@ -112,7 +116,6 @@ namespace RoomBreakers.UnityInput
                 Pose3 headWorld = UnitySpatialFrame.Pose(playerCamera.transform.position, playerCamera.transform.rotation);
                 Pose3 canonicalHead = roomSource.WorldFrame.ToLocal(headWorld);
                 if (!RoomPlanner.TryPlan(roomSource.Snapshot, canonicalHead, out RoomPlan plan, out planningError)) return;
-                // Validate the reflection lesson before starting, not after the player completes the Motes.
                 if (includeShell && !ReflectionLane.TryCreate(plan, out _, out planningError)) return;
                 if (!MiniaturePlacement.TryInFrontOf(headWorld, new SpatialFrame(Pose3.Identity, 1), out SpatialFrame table))
                 { planningError = "Look forward and choose LOAD ROOM again."; return; }
@@ -123,7 +126,11 @@ namespace RoomBreakers.UnityInput
                 game = new FirstEncounter(plan, new DualScaleMap(roomSource.WorldFrame, miniature), includeShell: includeShell);
                 game.Controls.SetExternalPause(PauseReason.FocusLost, !focused || suspended);
                 acceptedRevision = roomSource.Revision; uiFrame = table;
-                view = new FirstEncounterView(visuals.transform, game, font, prototypeShader);
+                // Debug/synthetic/basic practice never unlocks release-device achievements.
+                bool practice = Application.isEditor || Debug.isDebugBuild || plan.Room.IsSynthetic || !includeShell;
+                experience = new EncounterExperience(game, GetProgress(practice), practice);
+                experience.Observe();
+                view = new FirstEncounterView(visuals.transform, game, font, prototypeShader, experience);
                 CreateReturnZones(); boot.SetActive(false); view.Refresh(game, playerCamera, uiFrame);
             }
             catch (Exception e)
@@ -131,6 +138,29 @@ namespace RoomBreakers.UnityInput
                 ClearEncounter(); planningError = "Encounter setup failed. Check the local Unity console before retrying.";
                 Debug.LogException(e, this);
             }
+        }
+        private ProgressJournal GetProgress(bool practice)
+        {
+            ProgressJournal existing = practice ? practiceProgress : deviceProgress;
+            if (existing != null) return existing;
+            ProgressJournal journal;
+            try
+            {
+                string path = Application.persistentDataPath;
+                journal = string.IsNullOrWhiteSpace(path) ? ProgressJournal.InMemory() :
+                    new ProgressJournal(System.IO.Path.Combine(path, "room-breakers", practice ? "practice-v1" : "device-v1"));
+            }
+            catch (Exception e) when (e is ArgumentException || e is System.IO.IOException || e is UnauthorizedAccessException ||
+                e is System.Security.SecurityException || e is NotSupportedException)
+            { journal = ProgressJournal.InMemory(); } // No machine paths or private data in logs.
+            if (practice) practiceProgress = journal; else deviceProgress = journal;
+            return journal;
+        }
+        private void FlushProgress()
+        {
+            // Retry pending writes only at explicit lifecycle boundaries, not on every frame.
+            if (practiceProgress != null && practiceProgress.Dirty) practiceProgress.Flush();
+            if (deviceProgress != null && deviceProgress.Dirty) deviceProgress.Flush();
         }
         private SpatialFrame CenteredFrame(SpatialFrame table, float scale)
         {
@@ -172,7 +202,6 @@ namespace RoomBreakers.UnityInput
                 returnZones[i].gameObject.SetActive(game.ShowReturnZone);
             }
         }
-        // Desktop uses the same active target: reflector while armored, Shell only when vulnerable.
         public bool TryPickDesktop(Ray ray, out Vector3 point, out bool menu)
         {
             point = Vector3.zero; menu = false; float best = float.MaxValue;
@@ -194,13 +223,17 @@ namespace RoomBreakers.UnityInput
         }
         private void ClearEncounter()
         {
-            view?.Dispose(); view = null; game = null;
+            FlushProgress(); view?.Dispose(); view = null; experience = null; game = null;
             foreach (Transform zone in returnZones) if (zone != null) Destroy(zone.gameObject);
         }
-        private void OnApplicationFocus(bool value) { focused = value; game?.Controls.SetExternalPause(PauseReason.FocusLost, !focused || suspended); if (!value) bootInput.Cancel(); }
-        private void OnApplicationPause(bool value) { suspended = value; game?.Controls.SetExternalPause(PauseReason.FocusLost, !focused || suspended); if (value) bootInput.Cancel(); }
-        private void OnDisable() { game?.Controls.SetExternalPause(PauseReason.FocusLost, true); bootInput.Cancel(); if (visuals != null) visuals.SetActive(false); }
-        private void OnEnable() { game?.Controls.SetExternalPause(PauseReason.FocusLost, !focused || suspended); if (visuals != null) visuals.SetActive(true); }
+        private void OnApplicationFocus(bool value)
+        { focused = value; game?.Controls.SetExternalPause(PauseReason.FocusLost, !focused || suspended); if (!value) { bootInput.Cancel(); FlushProgress(); } }
+        private void OnApplicationPause(bool value)
+        { suspended = value; game?.Controls.SetExternalPause(PauseReason.FocusLost, !focused || suspended); if (value) { bootInput.Cancel(); FlushProgress(); } }
+        private void OnDisable()
+        { game?.Controls.SetExternalPause(PauseReason.FocusLost, true); bootInput.Cancel(); FlushProgress(); if (visuals != null) visuals.SetActive(false); }
+        private void OnEnable()
+        { game?.Controls.SetExternalPause(PauseReason.FocusLost, !focused || suspended); if (visuals != null) visuals.SetActive(true); }
         private void OnDestroy() { ClearEncounter(); if (visuals != null) Destroy(visuals); if (bootMaterial != null) Destroy(bootMaterial); }
     }
 }
