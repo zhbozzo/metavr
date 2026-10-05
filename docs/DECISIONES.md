@@ -38,6 +38,12 @@ Motivo: la idea tiene riesgos de atención, originalidad e implementación. El o
 
 Consecuencia: estado y métricas explícitos; requisitos frente a evidencia; no falsear vídeos o cifras; no garantizar premios ni plazos de desarrollo sin datos.
 
+## ADR-007 · Núcleo C# y paquete local antes del editor disponible
+
+Fecha: 4 de octubre de 2026. No hay editor Unity ni visor en el entorno remoto; sí hay escritura de código y ejecución de CI en GitHub. Se implementa el núcleo en C# compatible con .NET Standard 2.1 y se valida el mismo código mediante .NET. Se añade un paquete local de Unity con una escena generada por script de editor, pendiente de ejecución real.
+
+Consecuencia: avanzar sin cambiar motor ni fabricar ProjectSettings, GUIDs, API Meta o resultados de hardware. RB-001 sigue bloqueado; los demás tickets conservan pendientes sus condiciones de Unity/visor. El paquete no sustituye el proyecto final. Validar import, metadatos, pipeline y tests EditMode antes de ampliar la escena. Ver `IMPLEMENTACION_001.md` y las fuentes del README del paquete.
+
 ## Registro de riesgos
 
 | Riesgo | Señal temprana | Respuesta |

@@ -17,7 +17,7 @@ namespace RoomBreakers.ScaleLab.Editor
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             GameObject root = new GameObject("ROOMBREAKERS - Synthetic Scale Lab");
-            root.AddComponent<ScaleLab>();
+            root.AddComponent<global::RoomBreakers.ScaleLab.ScaleLab>();
             Selection.activeGameObject = root;
             Debug.Log("Press Play, then use the Game view. This scene is synthetic and mouse-only; it does not integrate Meta XR. Save it under a development-only scene path if needed.");
         }

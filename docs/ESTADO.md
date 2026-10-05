@@ -1,57 +1,57 @@
 # Estado real de ROOMBREAKERS
 
-Última actualización: 4 de octubre de 2026. Este archivo registra evidencia, no ambiciones. No hay juego Unity ejecutable, APK o prueba de visor todavía.
+Actualización: 4 de octubre de 2026, hora de Chile (ejecución CI del 5 de octubre UTC). **Ahora existe núcleo C# implementado y compilado; no existe todavía APK ni app Quest validada.**
 
-## Preparado en el repositorio
+## Incremento implementado
 
-Contexto y decisiones; requisitos de producto; diseño de juego; UX, seguridad y accesibilidad objetivo; arquitectura de dos escalas; procedimiento Unity/Quest; plan por hitos; 20 tickets de implementación con aceptación; pruebas; fuentes oficiales; arte/audio; privacidad/licencias; instrucciones de agentes; prompts de arranque y continuación; preparación de entrega y borradores ingleses.
+Código en `unity/Packages/com.zh.room-breakers`:
 
-Se añadió un modelo Python de referencia, sin dependencias externas, para transformación yaw/escala, reflexión y propiedad de captura. No es un motor de juego ni una integración Meta. Se añadieron tests de referencia, comprobación de integridad documental y un workflow de GitHub Actions. No se provisionó infraestructura cloud ni se eligió una licencia de redistribución para el código propio.
+- `SpatialMath.cs`: poses 6DoF, marcos, quaternions, correspondencia de escalas, límites de interacción y reflexión.
+- `ScaleSession.cs`: una entidad autoritativa, captura exclusiva, offset de posición y orientación, movimientos validados, cancelación, devolución única, pausa por motivos y recalibración.
+- `ScaleLab.cs`: laboratorio Unity sintético, dos vistas, selección con ratón, proxy ampliado, destino, reset y simulación de pérdida de tracking. Es código escrito, pendiente de ejecutar en Unity.
+- `ScaleLabMenu.cs`: crea la escena mediante el editor real; no se fabricaron escenas YAML ni GUIDs.
+- `SpatialFrameUnityTests.cs`: cuatro casos EditMode para contrastar con el motor; NOT RUN.
+
+El proyecto Unity principal y los SDKs Meta todavía no se han instalado. El paquete local es una forma de incorporar código al proyecto real, no un sustituto de ese proyecto. La referencia Python y toda la especificación anterior permanecen.
 
 ## Evidencia de ejecución
 
 | Comprobación | Estado |
 | --- | --- |
-| Escritura de la base en GitHub | Realizada en main; árbol remoto consultado |
-| Integridad de archivos/enlaces simples | PASS en GitHub Actions, ejecución 37241476190 |
-| Tests Python del modelo de referencia | PASS: 20 tests locales; también pasó el paso correspondiente en Actions |
-| Proyecto Unity creado por editor real | NOT RUN |
-| Compilación Unity/EditMode/PlayMode | NOT RUN |
+| Núcleo C# compilado como .NET Standard 2.1 | PASS en GitHub Actions |
+| Tests del núcleo real C# | PASS: 49 tests, 0 fallidos |
+| Casos de ida/vuelta 6DoF | 300 iteraciones con semilla fija dentro de uno de esos 49 tests |
+| Archivos de laboratorio/editor Unity escritos | Sí; import y ejecución pendientes |
+| Import/compilación Unity | NOT RUN |
+| Cuatro tests EditMode Unity | NOT RUN |
+| Observación de Play Mode | NOT RUN |
 | APK Android | NOT RUN |
-| Ejecución en Quest | NOT RUN |
-| Confort y comprensión con personas | NOT RUN |
-| Habitaciones reales no usadas para desarrollo | NOT RUN |
-| Rendimiento en dispositivo | NOT RUN |
-| Canal Competition y ensayo de instalación | NOT RUN |
-| Candidatura enviada | NO |
+| Passthrough, manos reales y room scan | No integrados todavía |
+| Ejecución/confort/rendimiento en Quest | NOT RUN |
+| Canal Competition y candidatura | No creados/enviados por esta implementación |
 
-## Detalle de la validación inicial
+## Evidencia C#
 
-[GitHub Actions: Foundation checks, ejecución 1](https://github.com/zhbozzo/metavr/actions/runs/37241476190), commit `a84e9b82b94cf61d8090e28a8f2325aafe5c3a6a`, runner ubuntu-24.04. Estado observado: completed / success. Pasos de comprobación de archivos/enlaces y tests de referencia completados con éxito.
+[CI: Dual-scale CSharp core, ejecución 37248189333](https://github.com/zhbozzo/metavr/actions/runs/37248189333), commit `dafd74a1161fa59310817e711d202bef10ece667`, job `111570191619`. Resultado observado en logs: `RESULT: 49 passed, 0 failed`. Runner ubuntu-24.04; compilación con SDK .NET disponible en la imagen (lista máxima: 10.0.401), target del núcleo netstandard2.1, runner de tests net8.0. No hay paquetes NuGet de terceros. C# limitado a versión 8.0.
 
-Además se ejecutó `python3 -m unittest discover -s tests -v` localmente con Python 3.13.5: 20 tests, resultado OK. Como la clonación HTTP desde el entorno local estaba bloqueada por DNS, se prepararon copias de los dos archivos de código y se verificaron sus hashes de blob Git contra el árbol remoto antes de ejecutarlas:
+Es compilación y ejecución del código del núcleo, no del adaptador Unity. No se usaron stubs de UnityEngine para fingir validación del editor. El test de tracking prueba una señal lógica de fallo, no sensores físicos.
 
-- `prototypes/reference_model.py`: `2cbcfbbfac08c36c993bdf4311b0f34748398e35`.
-- `tests/test_reference_model.py`: `623c463cf6bf585661db4213362a45bdebe732a8`.
+## Evidencia anterior conservada
 
-La comprobación documental completa se ejecutó en Actions sobre el checkout del repositorio, no sobre una carpeta local parcial. El checker valida presencia y enlaces Markdown relativos simples; no verifica páginas externas, exactitud de todas las afirmaciones ni compatibilidad de SDKs.
+[Foundation checks 37241476190](https://github.com/zhbozzo/metavr/actions/runs/37241476190), commit `a84e9b82b94cf61d8090e28a8f2325aafe5c3a6a`: comprobación documental y modelo de referencia aprobados. La sesión previa registró 20 tests Python locales; esta sesión no los describe como una nueva ejecución local. Su nueva ejecución, cuando corresponda, queda en los checks del commit/PR.
 
-Los tests cubren marcos yaw/escala, reflexión, captura, cancelación y resolución única en un modelo de referencia. No cubren input real, Unity 6DoF, física completa, room scans, rendimiento o seguridad física. La actualización de este registro no modifica esos archivos de código.
+## Bloqueos y versiones
 
-## Versiones y acceso
+En este entorno no están instalados Unity, dotnet, mono o csc; no hay visor conectado. La conexión GitHub permitió compilar/probar C# en Actions. El shell local no resuelve github.com, por lo que no se afirma una clonación local.
 
-Unity: por validar. Meta Core/Interaction/MRUK/provider XR: por validar. Android tooling: por validar. Quest y versión de sistema: acceso por confirmar. No se han inventado manifests ni ProjectSettings para aparentar una instalación.
+Unity/Meta Core/Interaction/MRUK/provider XR/Android tooling: combinación por validar en el equipo real. El campo Unity 6000.0 del paquete indica objetivo de API, no versión instalada o compatibilidad Meta certificada. Acceso a Quest: pendiente de confirmar.
 
 ## Backlog
 
-RB-001 a RB-020: pendientes. Las pruebas Python no completan RB-002, que requiere implementación y pruebas Unity 6DoF.
+RB-001: BLOCKED para editor, integración Meta y dispositivo. RB-002: núcleo 6DoF implementado y probado en .NET; prueba Unity pendiente. RB-003: presentaciones escritas; observación pendiente. RB-004/RB-006: mecanismos de dominio parciales; manos, UX y dispositivo pendientes. Ningún ticket de aceptación en visor se considera completado por estos resultados.
 
 ## Próximo paso
 
-Abrir este repositorio en el agente de código y ejecutar `prompts/INICIO.md`. Trabajar RB-001: auditar la máquina, instalar/verificar una combinación compatible y ejecutar una escena mínima con passthrough, manos y un objeto seleccionable en un Quest real. Registrar bloqueos concretos si falta editor o visor.
+Importar el paquete local en un proyecto Unity real; ejecutar Tools → RoomBreakers → Open Scale Lab → Play. Registrar versión completa del editor, errores de import/compilación y ejecución de los tests EditMode. Después integrar el adaptador Meta elegido y probar la misma interacción con manos y passthrough.
 
-No empezar boss, arte final, backend o más documentación estratégica antes de desbloquear esa prueba.
-
-## Actualización al terminar una sesión
-
-Añadir fecha, ticket, commit/archivos, comandos ejecutados, resultado observado y limitaciones. Usar PASS, FAIL, BLOCKED o NOT RUN. Adjuntar solo evidencia no sensible. No reemplazar pendientes por estimaciones ni considerar que compilar demuestra comodidad.
+No construir un jefe, backend o más planificación estratégica para eludir el bloqueo del editor/visor. Consultar `docs/IMPLEMENTACION_001.md` y el README del paquete.
