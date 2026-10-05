@@ -1,0 +1,14 @@
+{
+  "name": "RoomBreakers.MetaHands",
+  "rootNamespace": "RoomBreakers.MetaHands",
+  "references": ["RoomBreakers.Core", "RoomBreakers.UnityInput", "Oculus.Interaction"],
+  "defineConstraints": ["RB_META_ISDK_207"],
+  "versionDefines": [
+    {
+      "name": "com.meta.xr.sdk.interaction",
+      "expression": "[207.0.0,208.0.0)",
+      "define": "RB_META_ISDK_207"
+    }
+  ],
+  "autoReferenced": true
+}
