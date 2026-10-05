@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using RoomBreakers.Core;
 using UnityEngine;
 using NVector = System.Numerics.Vector3;
-using NQuaternion = System.Numerics.Quaternion;
 
 namespace RoomBreakers.UnityInput
 {
@@ -134,7 +133,9 @@ namespace RoomBreakers.UnityInput
         {
             Frame(world, game.Session.Map.Room); Frame(mini, game.Session.Map.Miniature);
             Vector3 position = UnitySpatialFrame.Vector(game.Session.ObjectPose.Position);
+            var q = game.Session.ObjectPose.Rotation;
             largeMote.localPosition = smallMote.localPosition = position;
+            largeMote.localRotation = smallMote.localRotation = new Quaternion(q.X, q.Y, q.Z, q.W);
             largeMote.gameObject.SetActive(game.CreatureVisible); smallMote.gameObject.SetActive(game.CreatureVisible);
             bool held = game.Session.State == ProbeState.Held;
             largeBody.sharedMaterial = smallBody.sharedMaterial = held || game.Controls.Capture.HoverHand != HandId.None ? active : gold;
@@ -150,6 +151,8 @@ namespace RoomBreakers.UnityInput
             string tip = game.Phase == EncounterPhase.Won ? "RIFT CLOSED! Pip is safe.\nRESTART to play again." :
                 game.Phase == EncounterPhase.Lost ? "The refuge went dark.\nRESTART for another attempt." :
                 game.Phase == EncounterPhase.RoomInvalid ? "ROOM CHANGED - load it again." :
+                (game.Session.PauseReasons & PauseReason.User) != 0 ? "PAUSED - choose RESUME to continue." :
+                game.Controls.Prompt != ControlPrompt.None ? "Confirm or cancel the selected action below." :
                 game.Controls.Capture.RequiresOpenHand ? "Open a tracked hand to begin or recover." :
                 game.Phase == EncounterPhase.LearnCapture ? "Pinch the tiny Mote. Bring it back to the rift.\nOpen your fingers inside the return zone." :
                 game.Session.CanReturn ? "Open your fingers to send it home!" : "Protect Pip: return the Motes before they reach him.";
