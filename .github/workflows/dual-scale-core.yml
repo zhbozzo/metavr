@@ -1,7 +1,7 @@
 name: Dual-scale CSharp core
 on:
   push:
-    branches: [main, 'feat/dual-scale-prototype', 'fix/capture-validation', 'feat/hands-scale-input', 'feat/hands-controls']
+    branches: [main, 'feat/**', 'fix/**']
     paths: ['unity/Packages/**', 'validation/**', '.github/workflows/dual-scale-core.yml']
   pull_request:
     paths: ['unity/Packages/**', 'validation/**', '.github/workflows/dual-scale-core.yml']
@@ -26,14 +26,12 @@ jobs:
         run: |
           dotnet --list-sdks
           dotnet --list-runtimes
-      - name: Compile actual core and run behavioral tests
-        run: dotnet run --project validation/RoomBreakers.Core.Tests/RoomBreakers.Core.Tests.csproj --configuration Release
-      - name: Run invalid-input regressions and seeded stress tests
-        run: dotnet run --project validation/RoomBreakers.Hardening.Tests/RoomBreakers.Hardening.Tests.csproj --configuration Release
-      - name: Run hand input and watchdog tests
-        run: dotnet run --project validation/RoomBreakers.HandInput.Tests/RoomBreakers.HandInput.Tests.csproj --configuration Release
-      - name: Run spatial controls and integrated routing tests
-        run: dotnet run --project validation/RoomBreakers.Controls.Tests/RoomBreakers.Controls.Tests.csproj --configuration Release
+      - name: Compile core and run every behavioral suite
+        run: |
+          set -euo pipefail
+          for project in validation/RoomBreakers.*.Tests/*.csproj; do
+            dotnet run --project "$project" --configuration Release
+          done
       - name: State validation boundary
         if: always()
-        run: echo 'Real CSharp core tests with synthetic inputs only. NOT Unity import, APK build, Meta SDK integration, physical safety or Quest performance.'
+        run: echo 'Actual CSharp core with synthetic rooms/input. NOT Unity import, Meta SDK compilation, APK, sensors or Quest performance.'
