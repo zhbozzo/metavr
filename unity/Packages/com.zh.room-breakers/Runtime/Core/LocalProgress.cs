@@ -170,7 +170,10 @@ namespace RoomBreakers.Core
             if (readOnly) return false;
             int a = Read(0, out LocalProgress av), b = Read(1, out LocalProgress bv);
             string desired = Current.Encode();
-            if (a == 2 || b == 2 || a == 3 || b == 3)
+            // Check ambiguity before accepting even a byte-for-byte matching checkpoint.
+            // Otherwise two incompatible histories at the same revision could falsely report success.
+            bool ambiguous = a == 0 && b == 0 && av.Completed == bv.Completed && av.Encode() != bv.Encode();
+            if (a == 2 || b == 2 || a == 3 || b == 3 || ambiguous)
             { readOnly = true; Status = "Progress changed elsewhere. This session has not overwritten it."; return false; }
             // An earlier write may have reached disk before verification was interrupted.
             if (a == 0 && av.Encode() == desired && (b != 0 || bv.Completed <= av.Completed)) { Accept(0); return true; }
@@ -196,7 +199,7 @@ namespace RoomBreakers.Core
         private void Accept(int slot)
         {
             active = slot; persistedRevision = Current.Completed; persistedPayload = Current.Encode();
-            Dirty = false; Status = "Saved on this device.";
+            Dirty = false; Status = Recovered ? "Saved on this device after checkpoint recovery." : "Saved on this device.";
         }
         private static bool StorageFailure(Exception e) => e is IOException || e is UnauthorizedAccessException ||
             e is SecurityException || e is NotSupportedException;
