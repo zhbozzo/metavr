@@ -1,0 +1,10 @@
+{
+  "name": "RoomBreakers.MetaEncounter.Editor",
+  "references": ["RoomBreakers.Core", "RoomBreakers.UnityInput", "RoomBreakers.MetaHands", "RoomBreakers.MetaRoom", "Oculus.Interaction", "meta.xr.mrutilitykit"],
+  "includePlatforms": ["Editor"],
+  "defineConstraints": ["ROOMBREAKERS_MRUK_207", "ROOMBREAKERS_ISDK_207"],
+  "versionDefines": [
+    { "name": "com.meta.xr.mrutilitykit", "expression": "[207.0.0,208.0.0)", "define": "ROOMBREAKERS_MRUK_207" },
+    { "name": "com.meta.xr.sdk.interaction", "expression": "[207.0.0,208.0.0)", "define": "ROOMBREAKERS_ISDK_207" }
+  ]
+}
