@@ -1,10 +1,10 @@
 name: Dual-scale CSharp core
 on:
   push:
-    branches: [main, 'feat/dual-scale-prototype', 'fix/capture-validation']
-    paths: ['unity/Packages/com.zh.room-breakers/**', 'validation/**', '.github/workflows/dual-scale-core.yml']
+    branches: [main, 'feat/dual-scale-prototype', 'fix/capture-validation', 'feat/hands-scale-input']
+    paths: ['unity/Packages/**', 'validation/**', '.github/workflows/dual-scale-core.yml']
   pull_request:
-    paths: ['unity/Packages/com.zh.room-breakers/**', 'validation/**', '.github/workflows/dual-scale-core.yml']
+    paths: ['unity/Packages/**', 'validation/**', '.github/workflows/dual-scale-core.yml']
 permissions:
   contents: read
 jobs:
@@ -27,6 +27,8 @@ jobs:
         run: dotnet run --project validation/RoomBreakers.Core.Tests/RoomBreakers.Core.Tests.csproj --configuration Release
       - name: Run invalid-input regressions and seeded stress tests
         run: dotnet run --project validation/RoomBreakers.Hardening.Tests/RoomBreakers.Hardening.Tests.csproj --configuration Release
+      - name: Run hand input and watchdog tests
+        run: dotnet run --project validation/RoomBreakers.HandInput.Tests/RoomBreakers.HandInput.Tests.csproj --configuration Release
       - name: State validation boundary
         if: always()
-        run: echo 'Real CSharp core tests only. NOT Unity import, APK build, hand tracking, physical safety or Quest performance.'
+        run: echo 'Real CSharp core tests with synthetic inputs only. NOT Unity import, APK build, Meta SDK integration, physical safety or Quest performance.'
