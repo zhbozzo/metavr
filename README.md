@@ -1,79 +1,80 @@
 # ROOMBREAKERS — Tu habitación, en tus manos
 
-> Un juego de realidad mixta en el que manipulas una maqueta de tu habitación y ves las consecuencias a escala real, sin levantarte de la silla.
+> Manipula una maqueta de tu habitación y protege el refugio de Pip viendo las consecuencias a escala real.
 
-**Estado: núcleo C#, controlador de manos y controles del laboratorio implementados y probados en .NET; presentación Unity y adaptador Meta escritos, pendientes de import/compilación y ejecución en el editor. No existe todavía un APK ni una app Quest validada.** El nombre es provisional. No existe garantía de ganar el concurso.
+**Estado: primer encuentro implementado en código; núcleo C# compilado y probado. Presentación Unity, entrada Meta y carga MRUK escritas pero aún sin import/compilación ni ejecución en Unity o Quest. No existe todavía APK ni entrega final validada.** El nombre es provisional; no hay garantía de premio.
 
-## Código: empieza aquí
+## Primer encuentro: empieza aquí
 
-El [paquete Scale Lab](unity/Packages/com.zh.room-breakers/README.md) contiene el núcleo, un laboratorio sintético con ratón y pruebas de editor. Se instala como paquete local en un proyecto Unity real. La combinación instalada de SDKs Meta sigue pendiente de validar.
+Ya hay lógica de habitación y una sesión pequeña: LOAD ROOM → maqueta/portal/ruta → tutorial de captura → criaturas móviles → victoria o derrota → reinicio. Tres devoluciones cierran la grieta; tres daños al refugio terminan la partida. El espacio modifica la ruta y la colocación. El menú conserva pausa, confirmación y recolocación sin duplicar la simulación.
 
-En Unity 6: Package Manager → Install package from disk → seleccionar `unity/Packages/com.zh.room-breakers/package.json` → Tools → RoomBreakers → Open Scale Lab → Play. Usar Game view. **Este recorrido está preparado en código; su smoke test real en Unity está pendiente.** El [incremento 001](docs/IMPLEMENTACION_001.md) explica el alcance inicial.
+**[Primer encuentro y procedimiento completo](docs/PRIMER_ENCUENTRO.md)** explica qué se implementó, qué queda pendiente, fuentes y limitaciones.
 
-**[Controlador y laboratorio de manos](docs/MANOS.md):** selección cercana con pinza, arbitraje de dos manos, vigilancia de datos atrasados, cancelación y recuperación. El adaptador opcional usa `IHand` de Meta v207.x. En una escena con rig XR ya configurado: **Tools → RoomBreakers → Add Meta Hands Harness**. El asistente conserva la cámara existente y añade una prueba de doble escala con distribución sintética; no configura passthrough ni escanea la habitación.
+Con el [paquete local](unity/Packages/com.zh.room-breakers/README.md) instalado en Unity:
 
-**[Nuevo: controles dentro del visor](docs/CONTROLES.md).** El harness genera fichas PAUSE/RESUME, RESTART y MOVE, con confirmación/cancelación para reiniciar o recolocar. Se eligen con pinza y liberación. La lógica impide que el mismo gesto active un control y capture el objeto. MOVE cambia solo la maqueta, no la cámara ni el marco grande. La presentación está escrita; aún no se ha observado dentro de Unity/Quest.
+- **`Tools → RoomBreakers → Open First Encounter (Desktop)`**: crea una escena de desarrollo con una habitación sintética y ratón. El editor genera la escena real. Abrir Game view y Play. Este recorrido está preparado, no observado todavía.
+- **`Tools → RoomBreakers → Add Device Room Encounter`**: añade el encuentro a una escena XR ya configurada. Requiere MRUK e Interaction SDK de la familia v207 revisada, referencias de cámara/manos reales y passthrough configurado. No instala dependencias ni reemplaza la cámara.
+
+La ruta real carga solo datos del dispositivo con consentimiento; no sustituye un fallo por una habitación falsa. La fuente sintética queda explícitamente identificada y deshabilitada en builds no Development.
+
+Los laboratorios anteriores siguen disponibles: `Open Scale Lab` y `Add Meta Hands Harness`. Sirven para aislar problemas de input/transformación sin recorrer el juego.
 
 ## Documentación
 
 | Necesitas | Documento |
 | --- | --- |
-| Contexto y decisiones previas | [Contexto](docs/CONTEXTO.md) |
-| Qué construir y qué no construir | [Producto](docs/PRODUCTO.md) y [diseño del juego](docs/JUEGO.md) |
-| Instrucciones para agentes de código | [AGENTS.md](AGENTS.md) y [prompt de inicio](prompts/INICIO.md) |
-| Arquitectura y transformación entre escalas | [Arquitectura](docs/ARQUITECTURA.md) |
-| Configurar Unity y probar en Quest | [Entorno](docs/ENTORNO.md) |
-| Controlador de manos y adaptador Meta | [Manos](docs/MANOS.md) |
-| Pausa, reinicio y colocación con manos | [Controles](docs/CONTROLES.md) |
-| Automatizar comprobaciones | [Autochecks](docs/AUTOCHECKS.md) |
-| Orden de implementación | [Plan](docs/PLAN.md) y [backlog](docs/BACKLOG.md) |
-| Requisitos y estrategia de concurso | [Concurso](docs/CONCURSO.md) |
-| Evidencia, pruebas y limitaciones | [Pruebas](docs/PRUEBAS.md) y [estado real](docs/ESTADO.md) |
-| Preparar build, vídeo y envío | [Entrega](docs/ENTREGA.md) |
-| Fuentes oficiales y discrepancias | [Fuentes](docs/FUENTES.md) |
+| Contexto y decisiones | [Contexto](docs/CONTEXTO.md) |
+| Producto y diseño completo | [Producto](docs/PRODUCTO.md) · [Juego](docs/JUEGO.md) |
+| Trabajo de agentes | [AGENTS.md](AGENTS.md) · [Inicio](prompts/INICIO.md) |
+| Una simulación y dos escalas | [Arquitectura](docs/ARQUITECTURA.md) |
+| Entorno de Unity y Quest | [Entorno](docs/ENTORNO.md) |
+| Primer encuentro y datos de habitación | [Primer encuentro](docs/PRIMER_ENCUENTRO.md) |
+| Captura, watchdog y Meta IHand | [Manos](docs/MANOS.md) |
+| Menú, pausa, reinicio y MOVE | [Controles](docs/CONTROLES.md) |
+| Ejecución de comprobaciones | [Autochecks](docs/AUTOCHECKS.md) |
+| Hitos y tareas | [Plan](docs/PLAN.md) · [Backlog](docs/BACKLOG.md) |
+| Estrategia y requisitos | [Concurso](docs/CONCURSO.md) |
+| Evidencia real y límites | [Estado](docs/ESTADO.md) · [Pruebas](docs/PRUEBAS.md) |
+| Preparación del envío | [Entrega](docs/ENTREGA.md) |
+| Referencias oficiales | [Fuentes](docs/FUENTES.md) |
 
-## La decisión central
+## Arquitectura y alcance
 
-Una sola simulación en coordenadas de la habitación; dos representaciones sincronizadas: habitación y maqueta. Agarrar una miniatura modifica esa única simulación. La mano gigante es feedback visual, no una segunda física.
+Unity/C# y adaptadores Meta, offline. Una pose y un estado canónicos alimentan habitación y maqueta; no hay dos físicas. La mano ampliada es feedback, no autoridad de colisión. Solo se manipula contenido virtual. No se camina hasta portales ni se golpean muebles reales.
 
-La primera prueba no es un juego completo: **seleccionar una miniatura, moverla y reconocer inmediatamente la consecuencia en el espacio real**, con una interacción cómoda y fiable. Si eso no funciona en un visor, no se añade contenido para ocultar el problema.
+El encuentro actual usa un solo tipo de criatura. La propuesta final conserva dos enemigos, reflector, personaje guía y partidas de seis a ocho minutos; eso **no está completo** todavía. Quest 3/3S siguen siendo objetivos, no compatibilidad demostrada. La versión actual de Pip/Motes/mano está construida con primitivas, no arte final.
 
-## Alcance elegido
+Sin backend, cuentas, pagos, multiplayer, IA generativa en ejecución, Terraform o eye tracking obligatorio. [Infraestructura](infra/README.md).
 
-Unity + C# + herramientas XR/MR de Meta. Quest 3/3S son objetivos de prueba, no compatibilidad ya demostrada. Partida objetivo de 6–8 minutos; un sector frontal del entorno; dos enemigos; una herramienta reflectante; un personaje guía. Todo el recorrido final debe funcionar con manos.
+## Comprobaciones
 
-No se incluye backend, login, pagos, multiplayer, IA generativa en ejecución, Terraform ni seguimiento ocular obligatorio. [Motivo de infraestructura](infra/README.md).
-
-## Comprobaciones disponibles
-
-Referencia, documentos y verificador, con Python 3.10 o superior:
+Python 3.10+ para referencia, documentos y herramientas:
 
 ```bash
 python3 tools/check_repo.py
 python3 -m unittest discover -s tests -v
 ```
 
-Código C# real, con SDK .NET y runtime .NET 8 instalados:
+Con SDK .NET y runtime .NET 8, ejecutar las cinco suites del código real:
 
 ```bash
-dotnet run --project validation/RoomBreakers.Core.Tests/RoomBreakers.Core.Tests.csproj --configuration Release
-dotnet run --project validation/RoomBreakers.Hardening.Tests/RoomBreakers.Hardening.Tests.csproj --configuration Release
-dotnet run --project validation/RoomBreakers.HandInput.Tests/RoomBreakers.HandInput.Tests.csproj --configuration Release
-dotnet run --project validation/RoomBreakers.Controls.Tests/RoomBreakers.Controls.Tests.csproj --configuration Release
+for project in validation/RoomBreakers.*.Tests/*.csproj; do
+  dotnet run --project "$project" --configuration Release || exit 1
+done
 ```
 
-Las cuatro suites compilan los archivos reales de `Runtime/Core` como .NET Standard 2.1. Se observaron **49 + 15 + 46 + 38 = 148 casos C# aprobados**. Evidencia, versiones y checks en ESTADO. **No equivalen a compilar Unity/Meta, probar sensores o certificar cumplimiento del concurso.**
+**183 casos C# aprobados** en la ejecución registrada en ESTADO: 49 del núcleo, 15 de robustez, 46 de manos, 38 de controles y 35 de habitación/encuentro. Se compilan los archivos reales de `Runtime/Core` como .NET Standard 2.1; se usan salas y entradas sintéticas. No se compilan UnityEngine/SDKs Meta ni se prueba hardware con este comando.
 
-Cuando exista un proyecto real con Unity y los tests del paquete configurados:
+Para los 12 casos EditMode escritos, cuando exista el proyecto/editor real:
 
 ```bash
 python3 tools/run_unity_checks.py
 ```
 
-Ejecuta tests EditMode mediante el editor real y revisa sus resultados. No marca PASS si falta editor/proyecto o no hay resultados. Su comprobación de presencia mínima sigue centrada en los cuatro casos originales de transformación; verificar también los ocho de UnityInputFrameTests en Test Runner. No ejecuta PlayMode, Android ni el visor. Ver [Autochecks](docs/AUTOCHECKS.md).
+El verificador no da PASS si falta el editor o el resultado. Su requisito mínimo sigue centrado en cuatro tests de transformación; revisar también los ocho UnityInputFrameTests. No ejecuta Play Mode, APK ni Quest. [Alcance de autochecks](docs/AUTOCHECKS.md).
 
-## Disciplina de ejecución
+## Trabajo y privacidad
 
-Trabajar por hitos pequeños, registrar pruebas realmente ejecutadas y actualizar [ESTADO](docs/ESTADO.md). Prioridades: seguridad, control fiable, comprensión de la doble escala, juego completo y presentación. Una función propuesta nunca se describe como implementada.
+Actualizar ESTADO con evidencia real al terminar cada incremento. No marcar una API escrita como una integración probada, ni una prueba .NET como una sesión en visor. Mantener los errores y accesos faltantes explícitos sin delegar al usuario las modificaciones rutinarias.
 
-Repositorio público: no subir correos privados, credenciales, IDs de dispositivos, enlaces de invitación, planos domésticos reales ni material de terceros sin autorización. No se ha elegido una licencia de redistribución para el código propio; esa decisión corresponde al titular.
+Repositorio público: no subir credenciales, correos privados, números de serie, invitaciones secretas, geometría de habitaciones reales o assets sin autorización. No se ha elegido una licencia de redistribución para el código propio; esa decisión corresponde al titular.
