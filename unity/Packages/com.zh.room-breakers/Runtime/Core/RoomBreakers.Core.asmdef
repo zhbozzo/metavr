@@ -1,0 +1,6 @@
+{
+  "name": "RoomBreakers.Core",
+  "rootNamespace": "RoomBreakers.Core",
+  "references": [],
+  "noEngineReferences": true
+}

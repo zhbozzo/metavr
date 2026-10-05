@@ -1,0 +1,29 @@
+name: Dual-scale CSharp core
+on:
+  push:
+    branches: [main, 'feat/dual-scale-prototype']
+    paths: ['unity/Packages/com.zh.room-breakers/**', 'validation/**', '.github/workflows/dual-scale-core.yml']
+  pull_request:
+    paths: ['unity/Packages/com.zh.room-breakers/**', 'validation/**', '.github/workflows/dual-scale-core.yml']
+permissions:
+  contents: read
+jobs:
+  csharp-core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+    steps:
+      - name: Checkout without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Record available SDKs and runtimes
+        run: |
+          dotnet --list-sdks
+          dotnet --list-runtimes
+      - name: Compile actual core and run behavioral tests
+        run: dotnet run --project validation/RoomBreakers.Core.Tests/RoomBreakers.Core.Tests.csproj --configuration Release
+      - name: State validation boundary
+        run: echo 'Compiled .NET Standard 2.1 core; executed .NET tests. NOT a Unity import, APK build, hand-tracking test or Quest performance result.'
