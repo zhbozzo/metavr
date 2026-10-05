@@ -1,12 +1,15 @@
 name: Dual-scale CSharp core
 on:
   push:
-    branches: [main, 'feat/dual-scale-prototype', 'fix/capture-validation', 'feat/hands-scale-input']
+    branches: [main, 'feat/dual-scale-prototype', 'fix/capture-validation', 'feat/hands-scale-input', 'feat/hands-controls']
     paths: ['unity/Packages/**', 'validation/**', '.github/workflows/dual-scale-core.yml']
   pull_request:
     paths: ['unity/Packages/**', 'validation/**', '.github/workflows/dual-scale-core.yml']
 permissions:
   contents: read
+concurrency:
+  group: dual-scale-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   csharp-core:
     runs-on: ubuntu-24.04
@@ -29,6 +32,8 @@ jobs:
         run: dotnet run --project validation/RoomBreakers.Hardening.Tests/RoomBreakers.Hardening.Tests.csproj --configuration Release
       - name: Run hand input and watchdog tests
         run: dotnet run --project validation/RoomBreakers.HandInput.Tests/RoomBreakers.HandInput.Tests.csproj --configuration Release
+      - name: Run spatial controls and integrated routing tests
+        run: dotnet run --project validation/RoomBreakers.Controls.Tests/RoomBreakers.Controls.Tests.csproj --configuration Release
       - name: State validation boundary
         if: always()
         run: echo 'Real CSharp core tests with synthetic inputs only. NOT Unity import, APK build, Meta SDK integration, physical safety or Quest performance.'
