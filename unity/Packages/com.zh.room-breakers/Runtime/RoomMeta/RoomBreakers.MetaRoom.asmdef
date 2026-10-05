@@ -1,0 +1,8 @@
+{
+  "name": "RoomBreakers.MetaRoom",
+  "references": ["RoomBreakers.Core", "RoomBreakers.UnityInput", "meta.xr.mrutilitykit", "Oculus.VR"],
+  "defineConstraints": ["ROOMBREAKERS_MRUK_207"],
+  "versionDefines": [
+    { "name": "com.meta.xr.mrutilitykit", "expression": "[207.0.0,208.0.0)", "define": "ROOMBREAKERS_MRUK_207" }
+  ]
+}
