@@ -5,7 +5,7 @@ namespace RoomBreakers.Core
 {
     public enum HandId { None, Left, Right }
     public enum ProbeState { Available, Held, Returned }
-    [Flags] public enum PauseReason { None = 0, User = 1, TrackingLost = 2, FocusLost = 4, Placement = 8 }
+    [Flags] public enum PauseReason { None = 0, User = 1, TrackingLost = 2, FocusLost = 4, Placement = 8, Menu = 16 }
 
     // One entity for the first slice. Both views read this state; neither view simulates it.
     public sealed class ScaleSession
@@ -122,8 +122,9 @@ namespace RoomBreakers.Core
 
         public void SetPause(PauseReason reason, bool enabled)
         {
+            const PauseReason known = PauseReason.User | PauseReason.TrackingLost | PauseReason.FocusLost | PauseReason.Placement | PauseReason.Menu;
             int value = (int)reason;
-            if (value <= 0 || (value & ~15) != 0 || (value & (value - 1)) != 0) throw new ArgumentException("Set one known pause reason at a time.", nameof(reason));
+            if (value <= 0 || (value & ~(int)known) != 0 || (value & (value - 1)) != 0) throw new ArgumentException("Set one known pause reason at a time.", nameof(reason));
             if (enabled)
             {
                 if (State == ProbeState.Held) CancelCapture(Owner);
