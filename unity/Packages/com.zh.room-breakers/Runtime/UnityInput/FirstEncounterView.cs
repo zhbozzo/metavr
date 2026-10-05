@@ -6,24 +6,26 @@ using NVector = System.Numerics.Vector3;
 
 namespace RoomBreakers.UnityInput
 {
-    // Original procedural prototype visuals. No duplicate physics, room recordings or third-party art.
+    // Original procedural prototype visuals. No duplicate physics or third-party art.
     public sealed class FirstEncounterView : IDisposable
     {
         private readonly GameObject root;
         private readonly Transform world, mini, largeMote, smallMote, largePortal, smallPortal, largePip, smallPip, hand;
         private readonly Renderer largeBody, smallBody;
+        private readonly Transform[,] refugeLights = new Transform[2, 3];
         private readonly Material gold, active, structure, portal, dark, white, pipMaterial;
         private readonly List<Material> materials = new List<Material>();
         private readonly List<AudioClip> clips = new List<AudioClip>();
         private readonly AudioSource audio;
         private readonly AudioClip returnSound, missSound;
         private readonly TextMesh instructions;
+        private readonly ShellDuelView shellView;
         private int captured, missed;
         public HandsControlPanel Panel { get; }
         public Vector3 MiniatureMotePosition => smallMote.position;
         public FirstEncounterView(Transform parent, FirstEncounter game, Font font, Shader shader)
         {
-            root = new GameObject("First encounter views - one shared simulation"); root.transform.SetParent(parent, false);
+            root = new GameObject("Encounter views - one shared simulation"); root.transform.SetParent(parent, false);
             gold = Material(shader, new Color(1, .64f, .18f)); active = Material(shader, new Color(.2f, .9f, .9f));
             structure = Material(shader, new Color(.3f, .4f, .5f)); portal = Material(shader, new Color(.48f, .3f, 1));
             dark = Material(shader, new Color(.04f, .05f, .10f)); white = Material(shader, Color.white);
@@ -35,6 +37,9 @@ namespace RoomBreakers.UnityInput
             largeBody = largeMote.GetChild(0).GetComponent<Renderer>(); smallBody = smallMote.GetChild(0).GetComponent<Renderer>();
             largePortal = Rift(world, game.Plan.Portal); smallPortal = Rift(mini, game.Plan.Portal);
             largePip = Pip(world, game.Plan.Refuge); smallPip = Pip(mini, game.Plan.Refuge);
+            for (int view = 0; view < 2; view++) for (int i = 0; i < 3; i++)
+                refugeLights[view, i] = Primitive(view == 0 ? largePip : smallPip, "Refuge light " + (i + 1),
+                    PrimitiveType.Sphere, new Vector3((i - 1) * .11f, -.10f, -.16f), Vector3.one * .055f, pipMaterial);
             hand = Child(root.transform, "Enlarged schematic pinch hand - not articulated joint tracking");
             Primitive(hand, "Palm", PrimitiveType.Cube, Vector3.zero, new Vector3(.18f, .045f, .15f), active);
             Primitive(hand, "Index", PrimitiveType.Capsule, new Vector3(.05f, .03f, .10f), new Vector3(.035f, .10f, .035f), active).localRotation = Quaternion.Euler(90, 0, 0);
@@ -44,14 +49,13 @@ namespace RoomBreakers.UnityInput
             instructions.anchor = TextAnchor.MiddleCenter; instructions.alignment = TextAlignment.Center;
             label.GetComponent<MeshRenderer>().sharedMaterial = font.material;
             Panel = new HandsControlPanel(root.transform, font, shader);
+            shellView = new ShellDuelView(world, mini, largeMote, smallMote, shader);
             var speaker = Child(root.transform, "Spatial outcome speaker"); audio = speaker.gameObject.AddComponent<AudioSource>();
             audio.playOnAwake = false; audio.spatialBlend = 1; audio.volume = .20f; audio.minDistance = .5f; audio.maxDistance = 7;
             returnSound = Tone(660, .13f); missSound = Tone(180, .20f);
         }
         private static Transform Child(Transform parent, string name)
-        {
-            var t = new GameObject(name).transform; t.SetParent(parent, false); return t;
-        }
+        { var t = new GameObject(name).transform; t.SetParent(parent, false); return t; }
         private Material Material(Shader shader, Color color)
         {
             var m = new Material(shader);
@@ -91,7 +95,7 @@ namespace RoomBreakers.UnityInput
         }
         private Transform Mote(Transform parent)
         {
-            Transform mote = Child(parent, "Mote");
+            Transform mote = Child(parent, "Mote / Shell core");
             Primitive(mote, "Body", PrimitiveType.Sphere, Vector3.zero, new Vector3(.24f, .20f, .20f), gold);
             for (int side = -1; side <= 1; side += 2)
             {
@@ -126,45 +130,58 @@ namespace RoomBreakers.UnityInput
             var clip = AudioClip.Create("Original generated interaction tone", count, 1, rate, false); clip.SetData(samples, 0); clips.Add(clip); return clip;
         }
         private static void Frame(Transform t, SpatialFrame frame)
-        {
-            UnitySpatialFrame.ApplyPose(t, frame.Origin); t.localScale = Vector3.one * frame.Scale;
-        }
+        { UnitySpatialFrame.ApplyPose(t, frame.Origin); t.localScale = Vector3.one * frame.Scale; }
         public void Refresh(FirstEncounter game, Camera camera, SpatialFrame uiFrame)
         {
             Frame(world, game.Session.Map.Room); Frame(mini, game.Session.Map.Miniature);
-            Vector3 position = UnitySpatialFrame.Vector(game.Session.ObjectPose.Position);
-            var q = game.Session.ObjectPose.Rotation;
-            largeMote.localPosition = smallMote.localPosition = position;
+            Pose3 creature = game.CreaturePose;
+            largeMote.localPosition = smallMote.localPosition = UnitySpatialFrame.Vector(creature.Position);
+            var q = creature.Rotation;
             largeMote.localRotation = smallMote.localRotation = new Quaternion(q.X, q.Y, q.Z, q.W);
             largeMote.gameObject.SetActive(game.CreatureVisible); smallMote.gameObject.SetActive(game.CreatureVisible);
             bool held = game.Session.State == ProbeState.Held;
-            largeBody.sharedMaterial = smallBody.sharedMaterial = held || game.Controls.Capture.HoverHand != HandId.None ? active : gold;
+            bool creatureSelected = !game.ActiveIsReflector && (held || game.Controls.Capture.HoverHand != HandId.None);
+            largeBody.sharedMaterial = smallBody.sharedMaterial = creatureSelected ? active : gold;
             hand.gameObject.SetActive(held && game.Session.HasValidCaptureSample && game.CreatureVisible);
             if (held) { UnitySpatialFrame.ApplyPose(hand, game.Session.LastHandWorld); hand.localScale = Vector3.one / game.Session.Map.Miniature.Scale; }
-            float riftSize = game.Phase == EncounterPhase.Won ? .01f : 1 - game.Captured * .17f;
+            float riftSize = game.Phase == EncounterPhase.Won ? .01f : 1 - game.Captured / (float)game.CaptureGoal * .80f;
             largePortal.localScale = smallPortal.localScale = Vector3.one * riftSize;
             float reaction = game.Phase == EncounterPhase.Won ? 1 + .10f * Mathf.Sin(Time.unscaledTime * 7) : 1;
             largePip.localScale = smallPip.localScale = Vector3.one * reaction;
+            for (int v = 0; v < 2; v++) for (int i = 0; i < 3; i++) refugeLights[v, i].gameObject.SetActive(i < game.Integrity);
             if (game.Captured > captured) { audio.transform.position = largePortal.position; audio.PlayOneShot(returnSound); }
             if (game.Missed > missed) { audio.transform.position = largePip.position; audio.PlayOneShot(missSound); }
             captured = game.Captured; missed = game.Missed;
-            string tip = game.Phase == EncounterPhase.Won ? "RIFT CLOSED! Pip is safe.\nRESTART to play again." :
-                game.Phase == EncounterPhase.Lost ? "The refuge went dark.\nRESTART for another attempt." :
-                game.Phase == EncounterPhase.RoomInvalid ? "ROOM CHANGED - load it again." :
-                (game.Session.PauseReasons & PauseReason.User) != 0 ? "PAUSED - choose RESUME to continue." :
-                game.Controls.Prompt != ControlPrompt.None ? "Confirm or cancel the selected action below." :
-                game.Controls.Capture.RequiresOpenHand ? "Open a tracked hand to begin or recover." :
-                game.Phase == EncounterPhase.LearnCapture ? "Pinch the tiny Mote. Bring it back to the rift.\nOpen your fingers inside the return zone." :
-                game.Session.CanReturn ? "Open your fingers to send it home!" : "Protect Pip: return the Motes before they reach him.";
+            shellView.Refresh(game);
             instructions.text = (game.Plan.Room.IsSynthetic ? "SYNTHETIC DEVELOPMENT ROOM\n" : "ROOMBREAKERS\n") +
-                "Returned " + game.Captured + "/3   |   Refuge " + game.Integrity + "/3\n" + tip;
+                "Returned " + game.Captured + "/" + game.CaptureGoal + "   |   Refuge " + game.Integrity + "/3\n" + Tip(game);
             instructions.transform.position = UnitySpatialFrame.Vector(uiFrame.Origin.Position) + camera.transform.up * .18f;
             instructions.transform.rotation = camera.transform.rotation;
             Panel.Refresh(uiFrame, game.Controls);
         }
+        private static string Tip(FirstEncounter game)
+        {
+            if (game.Phase == EncounterPhase.Won) return "RIFT CLOSED! Pip is safe.\nRESTART to play again.";
+            if (game.Phase == EncounterPhase.Lost) return "The refuge went dark.\nRESTART for another attempt.";
+            if (game.Phase == EncounterPhase.RoomInvalid) return "ROOM CHANGED - load it again.";
+            if ((game.Session.PauseReasons & PauseReason.User) != 0) return "PAUSED - choose RESUME to continue.";
+            if (game.Controls.Prompt != ControlPrompt.None) return "Confirm or cancel the selected action below.";
+            if (game.Controls.Capture.RequiresOpenHand) return "Open a tracked hand to begin or recover.";
+            if (game.Session.CanReturn) return "Open your fingers to send it home!";
+            if (game.Phase == EncounterPhase.ShellVulnerable) return "ARMOR OPEN - pinch Shell and return it!\nIts armor stays open while you hold it.";
+            if (game.ActiveIsReflector)
+            {
+                string alignment = game.Duel.PreviewHitsShell ? "ALIGNED: the return path reaches Shell." : "Turn the reflector until its path reaches Shell.";
+                if (game.Duel.Phase == ShellPhase.AwaitingOrientation)
+                    return "Shell is protected. Pinch and turn the blue reflector.\n" + alignment + "\nOpen your fingers when ready. Desktop: Q / E.";
+                return "The reflector stays on its stand. Turn it, then let go.\n" + alignment;
+            }
+            if (game.Phase == EncounterPhase.LearnCapture) return "Pinch the tiny Mote. Bring it back to the rift.\nOpen your fingers inside the return zone.";
+            return "Protect Pip: return the Motes before they reach him.";
+        }
         public void Dispose()
         {
-            Panel?.Dispose(); if (root != null) UnityEngine.Object.Destroy(root);
+            shellView?.Dispose(); Panel?.Dispose(); if (root != null) UnityEngine.Object.Destroy(root);
             foreach (var material in materials) if (material != null) UnityEngine.Object.Destroy(material);
             foreach (var clip in clips) if (clip != null) UnityEngine.Object.Destroy(clip);
         }
