@@ -1,65 +1,60 @@
 # Estado real de ROOMBREAKERS
 
-Actualización: 4 de octubre de 2026, hora de Chile (5 de octubre UTC). **Núcleo C# implementado y probado; no hay todavía APK ni app Quest validada.**
+Actualización: sesión del 4 de octubre de 2026 en Chile (ejecuciones CI del 5 de octubre UTC). **Núcleo y controlador de manos C# implementados y probados. Adaptador Meta y laboratorios Unity escritos, todavía no compilados/ejecutados en Unity. No existe APK ni app Quest validada.**
 
-## Incremento actual: robustez y comprobación automática
+## Incremento 003: interacción de manos
 
-Se corrigieron dos clases de problemas del núcleo:
+Se implementó `Runtime/Core/HandCaptureDriver.cs`: muestras temporizadas, selección cercana con pinza e histéresis, arbitraje entre dos manos, operación con una sola mano, vigilancia de datos ausentes/atrasados, cancelación y recuperación con una nueva muestra de mano abierta. La liberación aplica primero la pose actual. No se captura automáticamente al iniciar con dedos cerrados, recuperar tracking o barrer sobre el objeto después de una pinza fallida.
 
-- Una muestra de movimiento inválida/out-of-bounds dejaba la última pose válida sobre el destino y permitía premiar una devolución usando datos antiguos. Ahora la pose visual se conserva, pero la devolución queda invalidada hasta recibir otra muestra válida; una liberación inválida cancela la captura. Una muestra de otra mano no invalida al propietario.
-- Poses canónicas finitas podían desbordarse al representarse a otra escala. Constructor, movimientos, devolución y recalibración verifican las vistas antes de cambiar el estado. Un fallo conserva el estado o marco anterior.
+Código Unity añadido: `HandSampleSource`, `UnitySpatialFrame`, `HandsScaleRig` y `HandsHarnessPlacement`. Representa una entidad en dos escalas y mantiene una esfera de feedback en la posición ampliada de la pinza. No es aún una mano articulada. Configura un espacio de prueba sintético, no un scan. Detecta cambios de marcos y solicita confirmación; rechaza jerarquías no uniformes o reflejadas; conserva pausas previas. Fallos de inicialización deshabilitan el harness y registran el error, sin continuar a medias.
 
-Se añadió `tools/run_unity_checks.py`: ejecuta los tests EditMode del paquete cuando existe un editor/proyecto real, valida el XML de NUnit y guarda reportes solo localmente. No acepta resultados ausentes, cero tests, casos omitidos o una suite ajena como PASS. Uso y límites en [AUTOCHECKS](AUTOCHECKS.md).
+`Runtime/Meta/MetaHandSampleSource.cs` lee la interfaz oficial `IHand`: datos/confianza, puntas de pulgar e índice, pose de muñeca y fuerza de pinza. Usa `CurrentDataVersion` para no renovar artificialmente datos almacenados. Su assembly y el asistente de editor solo se habilitan para el paquete Interaction SDK en `[207.0.0,208.0.0)`. Se revisó la documentación v207; no se instaló el SDK ni se comprobó su compilación. Fuentes y límites en [MANOS](MANOS.md).
 
-## Evidencia actual
+El comando de editor **Tools → RoomBreakers → Add Meta Hands Harness** requiere una escena XR ya configurada y referencias explícitas de cámara/manos. No reemplaza la cámara ni instala paquetes. Los botones Inspector permiten pruebas de pausa/reinicio/colocación, pero **no son un menú hands-first dentro del visor**. Esa UI, passthrough, room scan y la malla de mano ampliada siguen pendientes de integración.
+
+## Evidencia de este incremento
 
 | Comprobación | Resultado observado |
 | --- | --- |
-| C# compilado como .NET Standard 2.1; suite original | PASS: 49 tests |
-| C# regresión y estrés | PASS: 15 tests |
-| Total de casos C# | 64 aprobados, 0 fallidos |
-| Python referencia + tests del verificador | PASS: 36 tests (20 + 16) |
-| Integridad documental | PASS: 27 archivos requeridos y 20 enlaces locales simples en la ejecución indicada |
-| Estrés determinista | 5.000 transformaciones y 20.000 comandos dentro de dos de los 15 tests nuevos |
-| Comando Unity en entorno sin proyecto/editor | BLOCKED, código 2; no se ejecutó Unity |
-| Import/compilación Unity y cuatro casos EditMode | NOT RUN |
-| PlayMode / APK Android | NOT RUN |
-| Passthrough, manos reales y room scan | No integrados |
-| Confort, rendimiento y ejecución en Quest | NOT RUN |
-| Canal Competition / candidatura | No creados ni enviados por esta implementación |
+| Núcleo C# como .NET Standard 2.1, suite original | PASS: 49 casos |
+| Suite C# de regresión/robustez | PASS: 15 casos |
+| Nuevo controlador de manos C# | PASS: 46 casos |
+| Total C# | 110 aprobados, 0 fallidos |
+| Iteración de nuevas entradas | 5.000 frames con semilla fija dentro de un caso; no usuarios ni sensores |
+| Import/compilación de assemblies Unity/Meta | NOT RUN |
+| Tests Unity EditMode | 12 casos escritos (4 anteriores + 8 nuevos), NOT RUN |
+| Observación visual de ambos laboratorios / PlayMode | NOT RUN |
+| APK Android, Quest, confort y rendimiento | NOT RUN |
+| Room scan / passthrough / menú XR completo | No integrados en un build probado |
+| Store / canal Competition / candidatura | No publicados/enviados por este incremento |
 
-[CI C# 37249508028](https://github.com/zhbozzo/metavr/actions/runs/37249508028), job 111574063117: logs observados `RESULT: 49 passed, 0 failed` y `HARDENING: 15 passed, 0 failed`.
+[CI C# 37250720836](https://github.com/zhbozzo/metavr/actions/runs/37250720836), commit `180d80197f1b1d7a7e961afd17b022e49aac05bb`, job `111577587660`: se leyeron logs con `RESULT: 49 passed, 0 failed`, `HARDENING: 15 passed, 0 failed` y `HAND INPUT: 46 passed, 0 failed`. El núcleo/controlador y esas suites no cambiaron después de esa ejecución; los commits siguientes ajustan Unity/editor y documentación. Los checks finales de la rama/PR deben consultarse antes de integrar.
 
-[CI Python/documentos 37249508162](https://github.com/zhbozzo/metavr/actions/runs/37249508162), job 111574063797: logs observados `Ran 36 tests` y `OK`.
-
-Ambos corresponden al PR #2 sobre el head `0a4c675aec71c3c1b3748095cf398c1ec2447dc5`; GitHub comprobó el merge temporal `61b1fb043cf4d973cacc49598f2e93bbc59dde0f`. Actualizar este registro no modifica el núcleo ni los tests. La ejecución final del commit documental queda en los checks del PR.
-
-Los 16 tests nuevos del verificador también se ejecutaron localmente con Python. Sus informes son sintéticos y sus lanzamientos están simulados para probar el script; **no son pruebas Unity**. Las iteraciones de estrés no equivalen a usuarios, habitaciones ni sensores reales.
-
-## Evidencia de que los tests detectan el problema anterior
-
-Antes de modificar el núcleo, [ejecución 37249267579](https://github.com/zhbozzo/metavr/actions/runs/37249267579), commit `500617ad26fdab5e864f048939eb4fd4ea3b76ff`: la suite antigua pasó 49/49; la nueva tuvo 9 casos aprobados y 6 fallidos. Esos seis casos ahora pasan. Son seis casos de regresión alrededor de dos clases de fallos, no seis problemas de hardware corregidos.
-
-## Código existente conservado
-
-`unity/Packages/com.zh.room-breakers` contiene SpatialMath, ScaleSession, ScaleLab, ScaleLabMenu y tests Unity. Una simulación y dos vistas; captura exclusiva y offset 6DoF, devolución única, pausa por motivos y recalibración. El laboratorio es sintético y con ratón; código de presentación escrito pero aún no ejecutado en Unity. El menú crea la escena con el editor real; no se fabricaron escenas, GUIDs o manifests Meta.
+La compilación usa .NET disponible en Actions, núcleo netstandard2.1, runners net8.0, C# 8, sin paquetes NuGet externos. El adaptador Unity y la fuente Meta NO participan en esa compilación. No se usan stubs de UnityEngine para fingir una prueba del motor.
 
 ## Evidencia anterior conservada
 
-[CI inicial C# 37248189333](https://github.com/zhbozzo/metavr/actions/runs/37248189333), commit `dafd74a1161fa59310817e711d202bef10ece667`: 49 tests. Uno contiene 300 round trips. Target netstandard2.1; tests net8.0; lenguaje C# 8.0; sin NuGet de terceros.
+PR #2 corrigió dos clases de defectos: premio de una devolución basado en una pose válida antigua tras una muestra rechazada; y poses finitas que desbordaban al proyectarse en otra escala. Se comprueban ambas vistas antes de aceptar cambios; fallos conservan estado/marco anterior.
 
-[Foundation inicial 37241476190](https://github.com/zhbozzo/metavr/actions/runs/37241476190), commit `a84e9b82b94cf61d8090e28a8f2325aafe5c3a6a`: documentación y referencia Python aprobadas. La sesión inicial registró 20 tests Python locales.
+- [CI previa C# 37249508028](https://github.com/zhbozzo/metavr/actions/runs/37249508028), job 111574063117: 49 + 15 casos aprobados.
+- [CI previa Python/documentos 37249508162](https://github.com/zhbozzo/metavr/actions/runs/37249508162), job 111574063797: 36 tests (20 referencia + 16 verificador) y comprobación documental aprobados.
+- Ambas usaron el merge temporal `61b1fb043cf4d973cacc49598f2e93bbc59dde0f` del head `0a4c675aec71c3c1b3748095cf398c1ec2447dc5`.
+- [Regresiones antes del arreglo 37249267579](https://github.com/zhbozzo/metavr/actions/runs/37249267579), commit `500617ad26fdab5e864f048939eb4fd4ea3b76ff`: 49/49 anteriores aprobados, seis casos nuevos fallidos que ahora pasan. Dos clases de errores, no seis problemas de hardware.
+- [CI inicial C# 37248189333](https://github.com/zhbozzo/metavr/actions/runs/37248189333), commit `dafd74a1161fa59310817e711d202bef10ece667`: 49 casos, uno con 300 round trips.
+- [Foundation inicial 37241476190](https://github.com/zhbozzo/metavr/actions/runs/37241476190), commit `a84e9b82b94cf61d8090e28a8f2325aafe5c3a6a`: documentación y referencia Python aprobadas. La sesión inicial registró 20 tests locales.
 
-## Bloqueos reales
+`tools/run_unity_checks.py` exige un proyecto/editor real y XML de NUnit completo. Los 16 tests Python del verificador usan informes sintéticos y procesos simulados: no acreditan ejecución Unity. El lanzamiento real previo sin editor/proyecto devolvió BLOCKED, código 2. Historial en [AUTOCHECKS](AUTOCHECKS.md).
 
-El entorno remoto no tiene Unity, dotnet, mono, csc ni un visor conectado. La conexión GitHub permite compilar y ejecutar C# en Actions. No se realizó clonación local porque el shell no resuelve github.com.
+## Bloqueos y alcance pendiente
 
-Unity/Meta Core/Interaction/MRUK/provider XR/Android tooling: combinación por verificar en un equipo real. El campo Unity 6000.0 del paquete expresa el objetivo de API, no una instalación probada. El script nuevo no instala software ni acepta acuerdos.
+Este entorno no dispone de editor Unity ni visor conectado. Se auditó la ausencia de compiladores .NET locales; se usa Actions para C#. La clonación GitHub desde el shell local falla por resolución DNS; no se afirma clonación o ejecución Unity local.
 
-La lógica corregida detecta muestras explícitamente inválidas. El futuro adaptador de sensores aún debe detectar callbacks ausentes o atrasados y cancelar/pausar; no se afirma que eso ya esté implementado.
+La combinación real de Unity, Meta Core/Interaction/MRUK/provider y Android tooling sigue por instalar/comprobar. El adaptador escrito no sustituye configurar esos paquetes y el rig. No se fabricaron ProjectSettings, escenas YAML, GUIDs ni resultados de hardware. Los umbrales de pinza, timeout y distancias son valores propuestos, no mediciones de comodidad.
 
-## Backlog y siguiente incremento
+El watchdog detecta falta de nuevas muestras del proveedor; no puede detectar que un proveedor avance su versión entregando datos incorrectos. La selección de proveedores reales y la recuperación del espacio del visor requieren prueba integrada. No se guardan poses privadas ni datos del entorno.
 
-RB-001 continúa BLOCKED para editor, integración Meta y visor. RB-002: núcleo 6DoF implementado y probado en .NET; contraste Unity pendiente. RB-003: presentación escrita, observación pendiente. RB-004/RB-006: dominio reforzado; adaptación de manos y UX pendiente. Ningún ticket que exige visor se considera completo.
+## Backlog y siguiente paso
 
-Siguiente paso ejecutable en una máquina con Unity: importar el paquete en un proyecto real, ejecutar `python3 tools/run_unity_checks.py`, luego observar Tools → RoomBreakers → Open Scale Lab → Play. Integrar después el adaptador Meta verificado, con watchdog de tracking. No se requiere aprobar cada modificación rutinaria; solo resolver accesos/acuerdos o pruebas físicas que el agente no puede realizar.
+RB-001: continúa pendiente/bloqueado para instalación de editor/SDKs y APK en visor. RB-002: matemática .NET probada, contraste con motor pendiente. RB-003: dos presentaciones escritas, observación pendiente. RB-004/RB-006: controlador de manos y recuperación avanzados; fuente Meta/glue escritos, aceptación en visor pendiente. No hay tickets de hardware completados por estos resultados.
+
+Siguiente incremento prioritario: importar el paquete en Unity real, ejecutar los 12 casos EditMode y probar el harness con el rig de manos. Conectar después controles de pausa/reinicio a UI XR y adaptar el marco a datos reales de habitación, antes de añadir enemigos finales. El flujo y el comando están en MANOS. No hace falta aprobar cada modificación rutinaria; sí resolver licencias, acceso a dispositivo y pruebas físicas que no pueden ejecutarse aquí.
