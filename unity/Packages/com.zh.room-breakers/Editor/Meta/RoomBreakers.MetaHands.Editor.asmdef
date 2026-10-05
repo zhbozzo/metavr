@@ -1,0 +1,8 @@
+{
+  "name": "RoomBreakers.MetaHands.Editor",
+  "rootNamespace": "RoomBreakers.MetaHands.Editor",
+  "references": ["RoomBreakers.MetaHands", "RoomBreakers.UnityInput", "Oculus.Interaction"],
+  "includePlatforms": ["Editor"],
+  "defineConstraints": ["RB_META_ISDK_207"],
+  "versionDefines": [{"name": "com.meta.xr.sdk.interaction", "expression": "[207.0.0,208.0.0)", "define": "RB_META_ISDK_207"}]
+}
