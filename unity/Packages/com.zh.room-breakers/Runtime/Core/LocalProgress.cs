@@ -8,7 +8,7 @@ using System.Text;
 
 namespace RoomBreakers.Core
 {
-    // A terminal gameplay outcome only. Contains no room, hand, account or device data.
+    // A terminal gameplay outcome only. No room, hand, account or device data.
     public sealed class RunResult
     {
         public Guid Id { get; }
@@ -86,7 +86,7 @@ namespace RoomBreakers.Core
             if (string.IsNullOrEmpty(text) || text.Length > 4096) return ProgressDecode.Corrupt;
             string[] parts = text.Split('|');
             if (parts.Length < 2 || parts[0] != "RBPROGRESS") return ProgressDecode.Corrupt;
-            if (parts[1] != "1") return ProgressDecode.Unsupported; // Never overwrite a future format.
+            if (parts[1] != "1") return ProgressDecode.Unsupported;
             if (parts.Length != 9 || parts[8] != Digest(text.Substring(0, text.LastIndexOf('|')))) return ProgressDecode.Corrupt;
             var numbers = new int[5];
             for (int i = 0; i < 5; i++)
@@ -101,27 +101,29 @@ namespace RoomBreakers.Core
         }
     }
 
-    // Small, local, single-writer journal. Write the inactive slot and verify it;
-    // the last accepted slot remains untouched if a write is interrupted.
-    // Checksums detect corruption, not cheating. No claim of power-loss-proof storage.
+    // Local single-writer journal. Writes only the inactive checkpoint and verifies it.
+    // Checksums detect corruption, not cheating. Not a power-loss-proof database or cloud save.
     public sealed class ProgressJournal
     {
         private readonly string directory;
         private int active = -1, persistedRevision;
+        private string persistedPayload = LocalProgress.Empty.Encode();
         private bool readOnly;
         public LocalProgress Current { get; private set; } = LocalProgress.Empty;
         public bool Dirty { get; private set; }
         public bool Recovered { get; private set; }
         public bool IsReadOnly => readOnly;
         public string Status { get; private set; } = "Progress stays on this device.";
+        private ProgressJournal()
+        { directory = ""; readOnly = true; Status = "Storage is unavailable. Progress lasts for this session only."; }
+        public static ProgressJournal InMemory() => new ProgressJournal();
         public ProgressJournal(string directory)
         {
             if (string.IsNullOrWhiteSpace(directory)) throw new ArgumentException("A local progress directory is required.", nameof(directory));
-            this.directory = Path.GetFullPath(directory);
-            Load();
+            this.directory = Path.GetFullPath(directory); Load();
         }
         private string Slot(int index) => Path.Combine(directory, index == 0 ? "progress-a.txt" : "progress-b.txt");
-        // -1 missing, 0 valid, 1 corrupt, 2 future, 3 unavailable. Missing is not the same as unreadable.
+        // -1 missing, 0 valid, 1 corrupt, 2 future, 3 unavailable.
         private int Read(int index, out LocalProgress value)
         {
             value = null;
@@ -145,16 +147,20 @@ namespace RoomBreakers.Core
             if (a == 0 || b == 0)
             {
                 active = a == 0 && (b != 0 || av.Completed >= bv.Completed) ? 0 : 1;
-                Current = active == 0 ? av : bv; persistedRevision = Current.Completed;
+                Current = active == 0 ? av : bv; persistedRevision = Current.Completed; persistedPayload = Current.Encode();
             }
-            if (a == 2 || b == 2 || a == 3 || b == 3 || (active < 0 && (a != -1 || b != -1)))
+            bool ambiguous = a == 0 && b == 0 && av.Completed == bv.Completed && av.Encode() != bv.Encode();
+            if (a == 2 || b == 2 || a == 3 || b == 3 || ambiguous || (active < 0 && (a != -1 || b != -1)))
             { readOnly = true; Status = "Saved progress unavailable. Playing without overwriting it."; return; }
             if (active >= 0 && (a == 1 || b == 1))
             { Recovered = true; Status = "Recovered the last readable progress checkpoint."; }
         }
         public bool Record(RunResult result)
         {
-            LocalProgress next = Current.With(result);
+            LocalProgress next;
+            try { next = Current.With(result); }
+            catch (InvalidOperationException)
+            { readOnly = true; Status = "Local progress limit reached. The game can continue."; return false; }
             if (ReferenceEquals(next, Current)) return false;
             Current = next; Dirty = true; return true;
         }
@@ -162,25 +168,35 @@ namespace RoomBreakers.Core
         {
             if (!Dirty) return !readOnly;
             if (readOnly) return false;
-            // A second writer must not silently overwrite a newer result.
             int a = Read(0, out LocalProgress av), b = Read(1, out LocalProgress bv);
-            if (a == 2 || b == 2 || a == 3 || b == 3 ||
-                (a == 0 && av.Completed > persistedRevision) || (b == 0 && bv.Completed > persistedRevision))
+            string desired = Current.Encode();
+            if (a == 2 || b == 2 || a == 3 || b == 3)
+            { readOnly = true; Status = "Progress changed elsewhere. This session has not overwritten it."; return false; }
+            // An earlier write may have reached disk before verification was interrupted.
+            if (a == 0 && av.Encode() == desired && (b != 0 || bv.Completed <= av.Completed)) { Accept(0); return true; }
+            if (b == 0 && bv.Encode() == desired && (a != 0 || av.Completed <= bv.Completed)) { Accept(1); return true; }
+            if (Conflicts(av, a) || Conflicts(bv, b))
             { readOnly = true; Status = "Progress changed elsewhere. This session has not overwritten it."; return false; }
             int target = active == 0 ? 1 : 0;
             try
             {
                 Directory.CreateDirectory(directory);
-                byte[] data = Encoding.UTF8.GetBytes(Current.Encode());
+                byte[] data = Encoding.UTF8.GetBytes(desired);
                 using (var file = new FileStream(Slot(target), FileMode.Create, FileAccess.Write, FileShare.None))
                 { file.Write(data, 0, data.Length); file.Flush(true); }
-                if (Read(target, out LocalProgress verified) != 0 || verified.Encode() != Current.Encode())
+                if (Read(target, out LocalProgress verified) != 0 || verified.Encode() != desired)
                 { Status = "Progress not saved. You can keep playing."; return false; }
-                active = target; persistedRevision = Current.Completed; Dirty = false;
-                Status = "Saved on this device."; return true;
+                Accept(target); return true;
             }
             catch (Exception e) when (StorageFailure(e))
             { Status = "Progress not saved. You can keep playing."; return false; }
+        }
+        private bool Conflicts(LocalProgress value, int state) => state == 0 &&
+            (value.Completed > persistedRevision || (value.Completed == persistedRevision && value.Encode() != persistedPayload));
+        private void Accept(int slot)
+        {
+            active = slot; persistedRevision = Current.Completed; persistedPayload = Current.Encode();
+            Dirty = false; Status = "Saved on this device.";
         }
         private static bool StorageFailure(Exception e) => e is IOException || e is UnauthorizedAccessException ||
             e is SecurityException || e is NotSupportedException;
