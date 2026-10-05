@@ -2,13 +2,15 @@
 
 > Un juego de realidad mixta en el que manipulas una maqueta de tu habitación y ves las consecuencias a escala real, sin levantarte de la silla.
 
-**Estado: primer núcleo C# implementado y probado en .NET; laboratorio de Unity escrito, pendiente de import y ejecución en el editor. No existe todavía un APK ni una app Quest validada.** El nombre es provisional. No existe garantía de ganar el concurso.
+**Estado: núcleo C# y controlador de manos implementados y probados en .NET; laboratorios Unity y adaptador Meta escritos, pendientes de import/compilación y ejecución en el editor. No existe todavía un APK ni una app Quest validada.** El nombre es provisional. No existe garantía de ganar el concurso.
 
 ## Código: empieza aquí
 
-El [paquete Scale Lab](unity/Packages/com.zh.room-breakers/README.md) contiene el código original del núcleo, un laboratorio sintético con ratón y tests para el editor. No hace falta cambiar de motor: se instala como paquete local en un proyecto Unity real. La combinación de SDKs Meta sigue pendiente de validar.
+El [paquete Scale Lab](unity/Packages/com.zh.room-breakers/README.md) contiene el código original del núcleo, un laboratorio sintético con ratón y tests para el editor. Se instala como paquete local en un proyecto Unity real. La combinación instalada de SDKs Meta sigue pendiente de validar.
 
-En Unity 6: Package Manager → Install package from disk → seleccionar `unity/Packages/com.zh.room-breakers/package.json` → Tools → RoomBreakers → Open Scale Lab → Play. Usar Game view. **Este recorrido está preparado en código; su smoke test real en Unity está pendiente.** El [incremento 001](docs/IMPLEMENTACION_001.md) explica el alcance inicial. El [estado real](docs/ESTADO.md) registra los incrementos y pruebas posteriores.
+En Unity 6: Package Manager → Install package from disk → seleccionar `unity/Packages/com.zh.room-breakers/package.json` → Tools → RoomBreakers → Open Scale Lab → Play. Usar Game view. **Este recorrido está preparado en código; su smoke test real en Unity está pendiente.** El [incremento 001](docs/IMPLEMENTACION_001.md) explica el alcance inicial.
+
+**Nuevo: [controlador y laboratorio de manos](docs/MANOS.md).** Incluye selección cercana con pinza, arbitraje de dos manos, vigilancia de datos atrasados, cancelación y recuperación. El adaptador opcional usa `IHand` de Meta v207.x. En una escena con rig XR ya configurado: **Tools → RoomBreakers → Add Meta Hands Harness**. El asistente conserva la cámara existente y añade una prueba de doble escala con distribución sintética; no configura passthrough ni escanea la habitación. La compilación Unity/Meta todavía no se ha ejecutado.
 
 ## Documentación
 
@@ -19,6 +21,7 @@ En Unity 6: Package Manager → Install package from disk → seleccionar `unity
 | Instrucciones para agentes de código | [AGENTS.md](AGENTS.md) y [prompt de inicio](prompts/INICIO.md) |
 | Arquitectura y transformación entre escalas | [Arquitectura](docs/ARQUITECTURA.md) |
 | Configurar Unity y probar en Quest | [Entorno](docs/ENTORNO.md) |
+| Controlador de manos y adaptador Meta | [Manos](docs/MANOS.md) |
 | Automatizar comprobaciones | [Autochecks](docs/AUTOCHECKS.md) |
 | Orden de implementación | [Plan](docs/PLAN.md) y [backlog](docs/BACKLOG.md) |
 | Requisitos y estrategia de concurso | [Concurso](docs/CONCURSO.md) |
@@ -52,9 +55,10 @@ Código C# real, con SDK .NET y runtime .NET 8 instalados:
 ```bash
 dotnet run --project validation/RoomBreakers.Core.Tests/RoomBreakers.Core.Tests.csproj --configuration Release
 dotnet run --project validation/RoomBreakers.Hardening.Tests/RoomBreakers.Hardening.Tests.csproj --configuration Release
+dotnet run --project validation/RoomBreakers.HandInput.Tests/RoomBreakers.HandInput.Tests.csproj --configuration Release
 ```
 
-Las dos suites compilan los mismos archivos de `Runtime/Core` como .NET Standard 2.1. Se observaron 49 + 15 tests C# y 36 Python aprobados; evidencia y alcance en ESTADO. **No equivalen a compilar Unity, probar un Quest o certificar cumplimiento del concurso.**
+Las tres suites compilan los mismos archivos de `Runtime/Core` como .NET Standard 2.1. Se observaron 49 + 15 + 46 casos C# aprobados. La evidencia Python y los checks de cada incremento están en ESTADO. **No equivalen a compilar Unity o el SDK Meta, probar un Quest o certificar cumplimiento del concurso.**
 
 Cuando exista un proyecto real con Unity y los tests del paquete configurados:
 
