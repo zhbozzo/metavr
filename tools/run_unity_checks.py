@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Run actual Unity EditMode checks; absent tools and missing results never pass.
-
-Sources: Unity Test Framework command-line reference (checked 2026-10-04).
-This does not install Unity, accept a license, create a project, or test a Quest.
-"""
+"""Run real Unity tests with complete suite evidence. Never substitute .NET or mocks."""
 from __future__ import annotations
 
 import argparse
@@ -21,6 +17,19 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 ASSEMBLY = "RoomBreakers.Core.UnityTests"
 PREFIX = "RoomBreakers.Tests.SpatialFrameUnityTests."
+INPUT_PREFIX = "RoomBreakers.Tests.UnityInputFrameTests."
+INPUT_CASES = (
+    "MissingFrameRejected", "UniformHierarchyMatchesTransform", "NonUniformAncestorRejected",
+    "MirroredAncestorRejected", "ZeroScaleRejected", "PhysicalRoomRejectsScaledTransform",
+    "OutOfRangeScaleRejected", "DriverUsesUnityWorldPoseWithoutDoubleTransform",
+)
+PLAY_ASSEMBLY = "RoomBreakers.Integration.PlayTests"
+PLAY_PREFIX = "RoomBreakers.Tests.EncounterIntegrationTests."
+PLAY_CASES = (
+    "BootPinchLoadsTheRealRig", "CaptureSynchronizesBothRenderedScales",
+    "FullEncounterWinsAndRestartsThroughSceneInput", "DisableAndInvalidationStopTheEncounter",
+)
+VERSION_PATTERN = r"[0-9]+\.[0-9]+\.[0-9]+[abfp][0-9]+"
 
 
 @dataclass(frozen=True)
@@ -30,39 +39,49 @@ class Outcome:
     cases: int = 0
 
 
-def inspect_results(path: Path) -> Outcome:
-    """Check real NUnit output, not just the editor exit status."""
+def inspect_results(path: Path, platform: str = "EditMode") -> Outcome:
+    """NUnit XML must contain every required case, not just a successful exit code."""
+    if platform not in ("EditMode", "PlayMode"):
+        return Outcome("FAIL", "Unknown test platform")
     try:
-        if path.stat().st_size > 10_000_000:
+        with path.open("rb") as source:
+            data = source.read(10_000_001)
+        if len(data) > 10_000_000:
             return Outcome("FAIL", "Unexpectedly large NUnit result file")
-        data = path.read_bytes()
-        if b"<!DOCTYPE" in data or b"<!ENTITY" in data:
+        text = data.decode("utf-8-sig")
+        if "<!DOCTYPE" in text.upper() or "<!ENTITY" in text.upper():
             return Outcome("FAIL", "DTD/entity declarations are not allowed")
-        root = ET.fromstring(data)
-    except (OSError, ET.ParseError):
+        root = ET.fromstring(text)
+    except (OSError, UnicodeError, ET.ParseError):
         return Outcome("FAIL", "Missing, unreadable or malformed NUnit results")
     if root.tag != "test-run" or root.get("result") != "Passed":
         return Outcome("FAIL", "NUnit run did not report Passed")
     cases = list(root.iter("test-case"))
     if not cases or any(case.get("result") != "Passed" for case in cases):
         return Outcome("FAIL", "Zero, failed, skipped or inconclusive test cases", len(cases))
+    if any(s.get("result") not in (None, "Passed") for s in root.iter("test-suite")):
+        return Outcome("FAIL", "A child test suite did not pass", len(cases))
     names = [case.get("fullname", "") for case in cases]
     if len(set(names)) != len(names) or not all(names):
         return Outcome("FAIL", "Missing or duplicate test identifiers", len(cases))
-    matched = [name for name in names if name.startswith(PREFIX)]
-    frames = [name for name in matched if name.startswith(PREFIX + "NumericFrameMatchesActualUnityTransform(")]
-    hand = PREFIX + "EnlargedHandPreservesRoomPoseAcrossTwoRotatedFrames"
-    if len(frames) < 3 or hand not in matched:
-        return Outcome("FAIL", "Required ROOMBREAKERS transform cases were not all executed", len(cases))
-    return Outcome("PASS", "Unity EditMode cases passed; this is NOT a device validation", len(cases))
+    if platform == "EditMode":
+        frames = [name for name in names if name.startswith(PREFIX + "NumericFrameMatchesActualUnityTransform(")]
+        required = {PREFIX + "EnlargedHandPreservesRoomPoseAcrossTwoRotatedFrames"}
+        required.update(INPUT_PREFIX + name for name in INPUT_CASES)
+        complete = len(frames) >= 3 and required.issubset(names)
+    else:
+        complete = {PLAY_PREFIX + name for name in PLAY_CASES}.issubset(names)
+    if not complete:
+        return Outcome("FAIL", "Required ROOMBREAKERS cases were not all executed", len(cases))
+    return Outcome("PASS", f"Unity {platform} suite passed; not a Quest or visual-quality validation", len(cases))
 
 
 def editor_version(project: Path) -> str | None:
     try:
-        text = (project / "ProjectSettings" / "ProjectVersion.txt").read_text(encoding="utf-8")
-    except OSError:
+        text = (project / "ProjectSettings/ProjectVersion.txt").read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
         return None
-    match = re.search(r"^m_EditorVersion:\s*([0-9]+\.[0-9]+\.[0-9]+[abfp][0-9]+)\s*$", text, re.MULTILINE)
+    match = re.search(r"^m_EditorVersion:\s*(" + VERSION_PATTERN + r")\s*$", text, re.MULTILINE)
     return match.group(1) if match else None
 
 
@@ -71,7 +90,6 @@ def find_editor(version: str, explicit: str | None) -> Path | None:
     if override:
         candidate = Path(override).expanduser()
         return candidate if candidate.is_file() and os.access(candidate, os.X_OK) else None
-    # Only the version declared by the project; never choose a newer editor implicitly.
     candidates = [
         Path("/Applications/Unity/Hub/Editor") / version / "Unity.app/Contents/MacOS/Unity",
         Path.home() / "Unity/Hub/Editor" / version / "Editor/Unity",
@@ -80,33 +98,54 @@ def find_editor(version: str, explicit: str | None) -> Path | None:
     return next((p for p in candidates if p.is_file() and os.access(p, os.X_OK)), None)
 
 
-def command(editor: Path, project: Path, output: Path) -> list[str]:
-    # -quit can stop tests before completion; the test runner controls shutdown.
-    # A list of arguments avoids shell parsing of paths with spaces.
-    return [str(editor), "-batchmode", "-nographics", "-runTests", "-projectPath", str(project),
-            "-testPlatform", "EditMode", "-assemblyNames", ASSEMBLY,
-            "-testResults", str(output / "results.xml"), "-logFile", str(output / "editor.log")]
-
-
-def execute(editor: Path, project: Path, output: Path, timeout: int) -> Outcome:
+def probe_version(editor: Path) -> str | None:
+    # Official -version prints without opening a project. Never upgrade by guessing from a path.
     try:
-        # Each call receives a fresh output folder from main: stale XML cannot pass.
+        result = subprocess.run([str(editor), "-version"], capture_output=True, text=True,
+                                timeout=30, check=False)
+    except (OSError, subprocess.TimeoutExpired, UnicodeError):
+        return None
+    if result.returncode != 0:
+        return None
+    versions = set(re.findall(r"(?<![0-9.])" + VERSION_PATTERN + r"(?![0-9a-z])",
+                              result.stdout + "\n" + result.stderr))
+    return next(iter(versions)) if len(versions) == 1 else None
+
+
+def command(editor: Path, project: Path, output: Path, platform: str = "EditMode") -> list[str]:
+    if platform not in ("EditMode", "PlayMode"):
+        raise ValueError("Unknown test platform")
+    # -quit aborts asynchronous tests. PlayMode retains a graphics device on a workstation.
+    args = [str(editor), "-batchmode"]
+    if platform == "EditMode":
+        args.append("-nographics")
+    return args + ["-runTests", "-projectPath", str(project), "-testPlatform", platform,
+                   "-assemblyNames", ASSEMBLY if platform == "EditMode" else PLAY_ASSEMBLY,
+                   "-testResults", str(output / "results.xml"), "-logFile", str(output / "editor.log")]
+
+
+def execute(editor: Path, project: Path, output: Path, timeout: int, platform: str = "EditMode") -> Outcome:
+    # Even a caller bypassing main must not pass by reusing a previous successful report.
+    if (output / "results.xml").exists():
+        return Outcome("FAIL", "Result path is not fresh; existing evidence was left untouched")
+    try:
         with (output / "process.log").open("w", encoding="utf-8") as log:
-            result = subprocess.run(command(editor, project, output), stdout=log,
+            result = subprocess.run(command(editor, project, output, platform), stdout=log,
                                     stderr=subprocess.STDOUT, timeout=timeout, check=False)
     except subprocess.TimeoutExpired:
-        return Outcome("FAIL", "Editor timed out; inspect the local logs")
+        return Outcome("FAIL", "Editor timed out; inspect local logs and close remaining Unity processes")
     except OSError:
-        return Outcome("BLOCKED", "Editor could not be launched; inspect installation and permissions")
+        return Outcome("BLOCKED", "Editor could not be launched")
     if result.returncode != 0:
         return Outcome("FAIL", f"Editor exited with code {result.returncode}; inspect local logs")
-    return inspect_results(output / "results.xml")
+    return inspect_results(output / "results.xml", platform)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", type=Path, default=ROOT / "unity/RoomBreakers")
-    parser.add_argument("--unity", help="Explicit editor executable; must match the project's version")
+    parser.add_argument("--unity", help="Exact editor executable; must match ProjectVersion")
+    parser.add_argument("--platform", choices=("EditMode", "PlayMode"), default="EditMode")
     parser.add_argument("--timeout", type=int, default=600)
     args = parser.parse_args(argv)
     if args.timeout <= 0:
@@ -115,21 +154,22 @@ def main(argv: Sequence[str] | None = None) -> int:
     version = editor_version(project)
     output = None
     if version is None or not (project / "Packages/manifest.json").is_file():
-        outcome = Outcome("BLOCKED", "A real Unity project with ProjectVersion and package manifest is required")
+        outcome = Outcome("BLOCKED", "A real Unity project with ProjectVersion and manifest is required")
     else:
         editor = find_editor(version, args.unity)
         if editor is None:
             outcome = Outcome("BLOCKED", f"Unity {version} was not found; no editor test has run")
         elif (project / "Temp/UnityLockfile").exists():
-            outcome = Outcome("BLOCKED", "Project appears open in Unity; close it before batch tests")
+            outcome = Outcome("BLOCKED", "Project is open in Unity; close it before batch tests")
+        elif probe_version(editor) != version:
+            outcome = Outcome("BLOCKED", "Selected editor version is unknown or differs from ProjectVersion")
         else:
-            # Logs may contain machine paths. Store locally, never publish automatically.
             base = ROOT / ".validation-local"
             base.mkdir(exist_ok=True)
             output = Path(tempfile.mkdtemp(prefix="unity-", dir=base))
-            outcome = execute(editor, project, output, args.timeout)
+            outcome = execute(editor, project, output, args.timeout, args.platform)
     report = {"timestamp_utc": datetime.now(timezone.utc).isoformat(), **asdict(outcome),
-              "declared_editor": version, "apk_tested": False, "quest_tested": False}
+              "platform": args.platform, "declared_editor": version, "apk_tested": False, "quest_tested": False}
     if output is not None:
         (output / "summary.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         report["local_report_directory"] = str(output)
