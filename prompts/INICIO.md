@@ -1,29 +1,21 @@
-# Prompt de arranque para Claude Code o Codex
+# Prompt de arranque — integración simulator-first
 
-Copia el siguiente bloque al agente trabajando dentro del repositorio. No pegar credenciales ni datos privados.
+Trabaja dentro del repositorio metavr para continuar ROOMBREAKERS. Lee AGENTS.md, docs/SIMULATOR_FIRST.md, docs/ESTADO.md y docs/CONTEXTO.md; después ARRANQUE_UNITY, ENTORNO, PLAN y BACKLOG. Consulta PRODUCTO/JUEGO/ARQUITECTURA para la tarea, sin reinventarlos.
 
----
+La decisión explícita del propietario es no comprar, arrendar, pedir prestado ni depender de un visor físico. Todo el desarrollo y la demostración se hace en computador. No incluyas conseguir un Quest, autorizar USB o probar en hardware como paso obligatorio. Conserva el riesgo de hardware no validado en los informes.
 
-Trabaja en este repositorio para construir ROOMBREAKERS, nuestro juego de realidad mixta para la Meta VR Start Developer Competition 2026. No necesito otra lluvia de ideas: necesito ejecutar el diseño existente con incrementos verificables.
+Ya existen núcleo C#, captura/controles, geometría, Motes, Shell/reflector, Pip, progreso local y herramientas de preparación. No vuelvas a construirlos desde cero. Unity/C# sigue siendo la ruta; no WebXR, backend, Terraform, login, multiplayer o IA generativa.
 
-Lee primero AGENTS.md, README.md, docs/ESTADO.md y docs/CONTEXTO.md. Después lee PRODUCTO, JUEGO, UX_SEGURIDAD, ARQUITECTURA, ENTORNO, PLAN y BACKLOG en docs/. Usa FUENTES.md para validar afirmaciones externas.
+Tu tarea inicial es SIM-001, integración real de editor, y luego SIM-002 si queda desbloqueada. Inspecciona Git, OS/arquitectura, RAM/espacio, editor/licencia y herramientas efectivamente disponibles. No sobrescribas cambios ni inventes un proyecto Unity.
 
-El concepto vigente es manipular una maqueta simplificada de la habitación y ver una mano ampliada intervenir sobre criaturas a escala real. Es un juego individual sentado, hands-first, offline. Unity/C# es la ruta elegida. Una única simulación en coordenadas de habitación alimenta ambas representaciones. No hay Terraform, backend, login, multiplayer, IA generativa en ejecución ni eye tracking obligatorio.
+Ejecuta las comprobaciones existentes que puedas. Con un Unity 6 activado usa tools/setup_unity_project.py y las instrucciones reales de docs/ARRANQUE_UNITY.md. Conserva ProjectVersion, manifest, lockfiles y metadata generados; no escribas YAML de escenas o GUIDs de SDK supuestos. Ejecuta EditMode y PlayMode con tools/run_unity_checks.py; registra los resultados del motor, no solo los mocks Python.
 
-Tu tarea de esta sesión es RB-001 y, solo si queda desbloqueado, la parte inicial de RB-002. Primero inspecciona el estado de Git, sistema operativo, herramientas y versiones disponibles. Respeta cambios existentes.
+Luego verifica la combinación compatible de Meta XR Simulator standalone, Unity/OpenXR, Core/Interaction/MRUK y API gráfica del host. macOS Apple Silicon es la ruta preferida. No asumir que mínimos documentados prueban compatibilidad. No instalar una versión latest indiscriminadamente ni usar instrucciones archivadas del simulador.
 
-Ejecuta las comprobaciones Python del README. Confirma que son pruebas de referencia, no Unity. Revisa documentación oficial vigente y selecciona una combinación compatible de editor Unity, Android tooling, XR provider y SDKs Meta. No inventes números de versión, clases, permisos o manifests.
+Escena XR mínima: runtime activo, perfil Quest 3, manos simuladas controladas desde computador y una interacción seleccionable. Acredita que el input entra por el adaptador XR, no por DesktopEncounterHand. Después recorre el encuentro existente con datos sintéticos de habitación del runtime o fixtures Prefab/JSON explícitos, implementando adaptadores que falten. No hacer indispensable Environment Depth en Mac ni requerir data forwarding desde hardware.
 
-Crea un proyecto Unity real bajo unity/RoomBreakers con la ruta oficial de instalación. Conserva archivos generados, .meta, ProjectVersion y lockfiles. Si falta Unity, licencia, acceso al dispositivo o una autorización, explica exactamente qué paso debe hacer Lorenzo y continúa con lo que sí puedas verificar. No fabriques un proyecto que aparente abrir en Unity.
+No confundas las tres capas: desktop con ratón, XR Simulator y APK Android. El simulador es un runtime de API, no una instalación Android. Más adelante hay que generar un APK nativo para los jueces conservando la ruta real de manos y carga consentida de habitación. No desactivar salvaguardas ni reemplazar sensores por fixtures silenciosos en release.
 
-Primera escena objetivo: rig válido, passthrough, manos y un objeto seleccionable. Añade el mínimo de lógica para probar selección, desplazamiento y pausa. No construyas personajes finales, menús elaborados, gameplay de oleadas, boss ni efectos de pared.
+Si falta editor, licencia o acceso local, informa la acción concreta de software que requiere el propietario y sigue con lo verificable. No describas GitHub como acceso al Mac. No declares éxito de Unity/Quest por tests .NET, ni prueba de comodidad por una captura de pantalla.
 
-Cuando el entorno funcione, prepara el servicio de transformación entre marco de habitación y maqueta con pruebas Unity. La referencia Python existente usa yaw y no sustituye quaternions/jerarquías 6DoF. Después muestra una sola entidad lógica en dos vistas, nunca dos simulaciones físicas.
-
-No marques el entorno completo sin un APK que arranque en el visor declarado. No digas que se ha probado comodidad o tracking mediante un mouse. Un fallo del SDK debe reportarse con error y versión, no ocultarse mediante una implementación ficticia.
-
-Antes de terminar, actualiza docs/ESTADO.md con el ticket trabajado, archivos, comandos ejecutados, resultados PASS/FAIL/BLOCKED/NOT RUN, versiones, limitaciones y siguiente tarea concreta. Registra decisiones nuevas en docs/DECISIONES.md. No cambies el alcance sin evidencia.
-
-Entrega un resumen en español con: qué funciona realmente, qué falta, cómo probarlo ahora y la única acción que requiere Lorenzo. No publiques el build ni envíes la candidatura sin mi autorización.
-
----
+Antes de terminar, actualiza docs/ESTADO.md: tarea, archivos, comandos, versiones, PASS/FAIL/BLOCKED/NOT RUN, evidencias y siguiente paso. Publicar el vídeo/APK o enviar candidatura requiere autorización. Responde en español sin delegar revisión rutinaria de código.

@@ -1,65 +1,68 @@
 # Decisiones y riesgos
 
-Registro inicial: 4 de octubre de 2026. Una decisión aceptada de diseño no implica que esté implementada o validada.
+Registro inicial: 4 de octubre de 2026. Actualización: 5 de octubre de 2026, hora de Chile. Diseño aceptado no equivale a implementación o validación.
+
+## ADR-008 · Desarrollo y demostración sin visor físico — VIGENTE
+
+Decisión explícita del propietario: todo en entorno de computador, sin comprar, arrendar, pedir prestado ni depender de un Quest. No es una fase de espera para comprar hardware. [Política completa y fuentes](SIMULATOR_FIRST.md).
+
+Alternativas consideradas en la conversación: compra, préstamo y desarrollo inicial con simulador seguido de pruebas físicas. Se descartan como dependencias del plan. Se mantiene Unity, no se migra a WebXR. Los criterios de trabajo pasan a editor real → XR Simulator/manos/entornos sintéticos → APK Android → vídeo/acceso.
+
+Consecuencias: los antiguos requisitos internos de hardware en ADR-001/007, planes y prompts quedan sustituidos. La evidencia física se declara NO VALIDADA y fuera de alcance; no bloquea hitos de simulación ni se transforma en aprobado. Las reglas externas de APK y manos siguen aplicando. El runtime simulado no contiene Android.
+
+No cambiar el código o las protecciones de release por inferencia. Los adaptadores de datos sintéticos y SDK tienen que integrarse y probarse; no afirmar que existen por esta decisión. En Mac no depender de Environment Depth del simulador, documentado para Windows. Ver referencias en SIMULATOR_FIRST.
+
+Riesgo aceptado en la planificación: discrepancias de sensores, comodidad, registro espacial, almacenamiento y rendimiento en hardware siguen sin comprobar. La entrega se autoriza separadamente y debe ser transparente. Esta decisión solo se reabre por solicitud explícita del propietario o un cambio externo verificado que requiera replantear el alcance; no por preferencia de otro agente.
 
 ## ADR-001 · Unity como ruta principal
 
-Motivo: integrar interacción de manos, utilidades del entorno y presentación nativa en el mismo proyecto. Se mantiene el motor hasta que exista un bloqueo concreto, no porque otro agente prefiera tecnología web.
-
-Consecuencia: entorno Android/Unity real y visor son necesarios. La selección inicial WebXR del registro no se conserva en el formulario final si no describe el build.
+Se mantiene para interacción de manos, utilidades del entorno y presentación nativa. La selección inicial WebXR del registro no describe la entrega actual. Consecuencia vigente: entorno real Unity/Android y XR Simulator; la antigua exigencia de visor fue sustituida por ADR-008.
 
 ## ADR-002 · Una autoridad, dos representaciones
 
-Motivo: prevenir estados divergentes, daño duplicado y problemas de física a escalas diferentes. Pose y eventos en coordenadas canónicas; vistas como consumidores. La mano grande es visual.
+Pose y eventos canónicos previenen divergencia, daño duplicado y física incoherente entre escalas. La mano grande es visual. Transformación y sincronización se prueban primero; no reparar una vista con offsets secretos.
 
-Consecuencia: transformación y sincronización son el primer bloque testeado. Nunca reparar desalineación con offsets no documentados en una sola vista.
+## ADR-003 · Sector frontal y configuraciones validadas
 
-## ADR-003 · Sector frontal y plantillas validadas
-
-Motivo: comodidad sentado, FoV y viabilidad. El proyecto no intenta navegar por cualquier geometría doméstica. Datos insuficientes producen reconfiguración explícita.
-
-Consecuencia: menos contenido espacial, pero comportamiento verificable. Un modo sintético de desarrollo no sustituye el escaneo real del producto.
+Se mantiene por diseño sentado/FoV y alcance. No navegar por cualquier geometría. Datos insuficientes producen reconfiguración explícita. Los fixtures son de desarrollo; no un reemplazo silencioso del entorno del jugador en release.
 
 ## ADR-004 · MVP offline
 
-Motivo: no hay necesidad de servidor para una partida individual y progreso local. Evita cuentas, latencia, gastos y exposición de geometría doméstica.
+Sin servidor, cuentas, latencia cloud ni exposición de geometría. No Terraform, APIs generativas, rankings globales, multiplayer o telemetría automática. Reabrir exige necesidad, presupuesto, privacidad y autorización.
 
-Consecuencia: sin Terraform, APIs de modelos, rankings globales, multiplayer ni telemetría automática. Un cambio exige necesidad concreta, presupuesto, privacidad y aprobación del propietario.
+## ADR-005 · Manos y movimientos controlados
 
-## ADR-005 · Manos con movimientos controlados
-
-Motivo: reducir dependencia de tracking de movimientos rápidos y mantener comodidad. Soltar en destino validado reemplaza un lanzamiento físico. Eye tracking no es dependencia.
-
-Consecuencia: más claridad de selección y destinos; modo una mano secuencial; pruebas de falsa activación y tracking perdido.
+Soltar en destino validado en vez de lanzamiento fuerte. Sin eye tracking obligatorio; operación secuencial con una mano, destinos claros y pruebas de falsa activación/pérdida. Se valida la ruta simulada sin afirmar precisión física.
 
 ## ADR-006 · Evidencia antes que promesas
 
-Motivo: la idea tiene riesgos de atención, originalidad e implementación. El objetivo es competir, no fingir una entrega acabada.
+El objetivo es competir, no aparentar producto acabado. Estados, métricas, vídeos y niveles de prueba explícitos. No garantías de premio ni plazos sin datos. Simulator-first no reduce esta exigencia.
 
-Consecuencia: estado y métricas explícitos; requisitos frente a evidencia; no falsear vídeos o cifras; no garantizar premios ni plazos de desarrollo sin datos.
+## ADR-007 · Núcleo C# y paquete antes del editor disponible
 
-## ADR-007 · Núcleo C# y paquete local antes del editor disponible
+Decisión del 4 de octubre: avanzar mediante C# .NET Standard 2.1, paquete Unity y GitHub Actions sin inventar ProjectSettings, GUIDs o APIs. La compilación de dominio no sustituye importar el motor. El bloqueo original de acceso físico se sustituye por ADR-008; el bloqueo de software que no se haya ejecutado permanece.
 
-Fecha: 4 de octubre de 2026. No hay editor Unity ni visor en el entorno remoto; sí hay escritura de código y ejecución de CI en GitHub. Se implementa el núcleo en C# compatible con .NET Standard 2.1 y se valida el mismo código mediante .NET. Se añade un paquete local de Unity con una escena generada por script de editor, pendiente de ejecución real.
+Detalle histórico: [versión previa del registro](https://github.com/zhbozzo/metavr/blob/aead3358d922e6d1e532818e3d1c55b824bbefe5/docs/DECISIONES.md) y [IMPLEMENTACION_001](IMPLEMENTACION_001.md).
 
-Consecuencia: avanzar sin cambiar motor ni fabricar ProjectSettings, GUIDs, API Meta o resultados de hardware. RB-001 sigue bloqueado; los demás tickets conservan pendientes sus condiciones de Unity/visor. El paquete no sustituye el proyecto final. Validar import, metadatos, pipeline y tests EditMode antes de ampliar la escena. Ver `IMPLEMENTACION_001.md` y las fuentes del README del paquete.
+## Registro de riesgos vigente
 
-## Registro de riesgos
-
-| Riesgo | Señal temprana | Respuesta |
+| Riesgo | Señal | Respuesta |
 | --- | --- | --- |
-| Atención dividida entre escalas | Mirar abajo permanentemente o giros incómodos | Ajustar maqueta/sector, destacar correspondencia, probar pausa táctica |
-| Jitter amplificado | Objeto grande tiembla con mano aparentemente quieta | Aumentar escala, filtros medidos, snap e histéresis; no más detalle visual |
-| Selección de objetos diminutos | Errores al escoger criaturas cercanas | Aumentar collider, separar amenazas y fijar objetivo |
-| Registro espacial débil | Portal se desliza o vistas discrepan | Revisar marcos, pausar al perder localización, reubicar |
-| Sala sin solución | Ruta bloqueada o reflector inútil | Validar plantilla antes de partida y ofrecer otro sector |
-| Sensación de tablero genérico | Usuarios no identifican efecto de la habitación | Exigir una decisión dependiente de geometría antes de más niveles |
-| Coste de doble render | Frame time crece con dos vistas | Geometría simplificada, pooling, materiales compartidos y límites |
-| Sin acceso a visor | Solo evidencia de editor | Resolver acceso antes de comprometer cronograma; declarar bloqueo |
-| Alcance excesivo | Nuevas funciones antes de sesión completa | Recortar P1 y seguir PLAN.md |
-| Candidatura inaccesible | Enlace exige cuenta del autor o build no instala | Ensayo con cuenta autorizada distinta antes de envío |
-| Material privado o sin licencia | Assets/capturas sin registro | Retirar de publicación y resolver derechos antes de continuar |
+| Confundir documentación con ejecución | Se anuncia XR sin sesión de runtime | Exigir evidencia por nivel y no reescribir tests para fingirla |
+| Atención dividida | Alternancia poco clara entre vistas | Observar la ejecución, ajustar maqueta/sector y guías |
+| Jitter amplificado | Inestabilidad en pruebas de input | Probar perturbaciones sintéticas, límites y filtros; hardware sigue no validado |
+| Selección diminuta | Objetivos ambiguos | Tamaño/separación/lock medidos en el perfil simulado |
+| Sala sin solución | Ruta/corredor bloqueados | Validar antes de jugar y ofrecer recuperación |
+| Tablero genérico | Geometría no cambia decisiones | Comparar fixtures con consecuencias distintas |
+| API/host incompatible | Runtime o extensión falla | Auditar versiones oficiales e instalación, no exigir compra de Quest |
+| Depth ausente en Mac | Función depende de capacidad no disponible | No hacerla esencial; geometría simplificada y limitación explícita |
+| Coste de doble render | Frame time/memoria crecen | Límites, materiales compartidos y perfil del host, sin atribuirlo al Quest |
+| Sin validación física | Solo datos simulados/host | Riesgo declarado; pruebas conservadoras y candidato transparente, no hardware como gate |
+| APK distinto del demo | Dependencias de laboratorio en release | Revisar configuración Android y misma revisión fuente, sin autoplay ni fallback falso |
+| Acceso de jueces incorrecto | Enlace privado/admin | Comprobar canal e invitación; no afirmar instalación no realizada |
+| Alcance excesivo | Más features antes de integrar | Seguir cola SIM y recortar P1 |
+| Datos o assets indebidos | Sin procedencia/autorización | No publicar hasta resolver derechos/privacidad |
 
-## Plantilla de nueva decisión
+## Plantilla
 
-Fecha, ID, contexto, alternativas, decisión, consecuencias, fuente cuando aplique, prueba necesaria y condición para revisarla. Nunca cambiar un principio de seguridad o privacidad sin dejar rastro y obtener la aprobación correspondiente.
+Fecha, ID, contexto, alternativas, decisión, consecuencias, fuentes, nivel de prueba y condición de revisión. Las reglas oficiales prevalecen sobre decisiones internas; no cambiar seguridad/privacidad sin dejar rastro.

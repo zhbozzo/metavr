@@ -1,74 +1,65 @@
-# Build de evaluación, vídeo y candidatura
+# Candidato Android, vídeo simulado y candidatura
 
-Estado: procedimiento pendiente. No hay APK ni candidatura enviada desde este repositorio. Consultar CONCURSO.md y FUENTES.md antes de ejecutar; las reglas y el formulario pueden cambiar.
+Procedimiento pendiente. No hay APK ni candidatura enviada desde este repositorio. [SIMULATOR_FIRST](SIMULATOR_FIRST.md) gobierna el plan: sin compras ni acceso obligatorio a visor; hardware no validado. Esto no exime del build Meta VR ni de hands-first.
 
-## 1. Congelar un candidato real
+## 1. Congelar un candidato comprobable
 
-Completar los P0 del backlog y registrar limitaciones. Identificar commit, versión de app, versiones Unity/SDK, dispositivo y OS probados. Generar un APK con la configuración Android y firma correspondientes al proyecto. No cambiar una firma de una app existente sin coordinación.
+Completar integración y pruebas del alcance de simulación, registrar fallos y limitaciones. No enviar con bloqueos conocidos o afirmaciones falsas. Fijar commit, editor, SDKs, runtime, API gráfica, perfiles y fixtures realmente probados.
 
-El APK, sus claves y logs sensibles no van al Git del código. Conservar una copia privada del artefacto y su hash SHA-256. Un hash identifica el archivo; no acredita que funcione.
+Producir APK Android con configuración/firma autorizadas. Revisar escena inicial, dependencias, permisos, arquitectura y stripping. Mantener entrada real de manos y carga consentida del entorno para el jugador. No convertir mouse, autoplay, operador MCP o una sala sintética de desarrollo en dependencias de release.
 
-En macOS, sobre un archivo realmente generado:
+El simulador no contiene Android; un vídeo del runtime no acredita arranque del APK. Identificar el archivo real:
 
 ```bash
 shasum -a 256 /ruta/local/RoomBreakers.apk
 ```
 
-No etiquetar el candidato como release si contiene un modo mouse o sala sintética activado por defecto. Los modos de desarrollo deben quedar separados de la experiencia entregada.
+Guardar artefacto y llaves en lugares privados apropiados, no en el Git del código. El hash no prueba que funcione. No se planifica adb install, USB o compra/préstamo de Quest.
 
-## 2. Ensayar acceso e instalación
+## 2. Canal de evaluación
 
-Seguir el procedimiento vigente de Meta Developer Dashboard para crear el canal de evaluación llamado Competition y subir el APK. Configurar la invitación para que los jueces accedan según las instrucciones actuales del concurso.
+Los requisitos Devpost reconsultados piden APK en canal nuevo Competition e Invite URL para nuestra ruta Unity. Consultar originales enlazados en SIMULATOR_FIRST y CONCURSO antes de publicar. Subir/configurar solo con autorización.
 
-El enlace que se presenta es el acceso de prueba adecuado, no una URL administrativa del dashboard que solo abra para el autor. No commitear enlaces privados de invitación a este repositorio público.
+Comprobar lo accesible de invitación, permisos de acceso y estado del build en dashboard. No enviar una URL administrativa que solo vea el autor. No commitear invitaciones secretas. No llamar a esta revisión instalación probada por otra cuenta/dispositivo: esa comprobación física queda no realizada, fuera del plan.
 
-Con una cuenta autorizada distinta, comprobar invitación, instalación, arranque, permisos, colocación, partida, pausa, resultado y reinicio. Registrar qué dispositivo y build se probaron. Si no se realizó este ensayo, permanece pendiente.
+Los jueces deben poder obtener el build sin compilar fuentes, credenciales del autor o trucos escondidos. Mantener acceso según reglas vigentes; no cambiar el candidato tras el cierre.
 
-La app no necesita publicarse comercialmente en Store para que esta guía esté completa. Publicar o enviar requiere autorización del propietario y cumplimiento del proceso aplicable.
+## 3. Transparencia de plataforma
 
-## 3. Instrucciones para jueces
+Completar [instrucciones de jueces](../submission/JUDGE_INSTRUCTIONS_EN.md) con versiones y comportamientos observados, no hipótesis. Separar perfiles simulados de dispositivos físicos probados. Disclosure previsto:
 
-Completar `../submission/JUDGE_INSTRUCTIONS_EN.md` únicamente con comportamientos comprobados. Incluir plataforma, dispositivos probados, setup de habitación, cómo iniciar con manos, objetivo, interacción, pausa y limitaciones conocidas. No confundir dispositivos objetivo con dispositivos probados.
+> Developed and demonstrated using Meta XR Simulator. Physical-headset validation has not been performed by the team.
 
-No exigir que el juez tenga credenciales del autor, configure secretos, compile código o descubra un menú oculto para jugar. Mantener acceso gratuito suficiente hasta el anuncio efectivo según reglas.
+Solo usar la primera frase cuando realmente se haya ejecutado la integración XR. Hasta entonces sigue siendo un texto de preparación. No certificar sensores, confort, rendimiento Quest o almacenamiento Android mediante resultados del host.
 
 ## 4. Vídeo real menor de tres minutos
 
-Propuesta de montaje de aproximadamente 140 segundos; no una duración oficial distinta al límite del concurso:
+La sección What to Submit admite XR Simulator o emulador equivalente. Plan de grabación: XR Simulator real, no imágenes generadas con IA ni una escena de ratón presentada como runtime XR sin justificar equivalencia.
 
-- 0–15 s: captura de miniatura y consecuencia de mano grande. Mostrar el valor antes de explicar tecnología.
-- 15–35 s: cómo se reconoce la habitación y cómo la geometría altera una posición o trayectoria.
-- 35–75 s: captura, reflector y enemigo acorazado en gameplay real.
-- 75–100 s: tutorial, juego sentado, pausa y recuperación, sin controles.
-- 100–125 s: cierre del encuentro y reacción de Pip.
-- 125–140 s: resumen breve y limitaciones/plataforma verificadas cuando corresponda.
+Montaje propuesto de unos 140 segundos:
 
-El vídeo debe representar el build entregado. No usar escenas generadas con IA, aceleraciones engañosas o montajes que hagan parecer funcional lo que no existe. Distinguir grabación en hardware de simulador si se utiliza este último. Si se mezcla una vista externa con captura del visor, mantener correspondencia real de la acción.
+- Inicio: miniatura capturada y consecuencia ampliada.
+- Relación con la sala sintética y una diferencia de geometría que cambie el juego.
+- Motes, reflector, Shell y cierre con gameplay ejecutado.
+- Pip, pausa/recuperación y reinicio con manos simuladas.
+- Entorno/perfil/versiones y limitación de hardware explícitos.
 
-Capturar una habitación sin personas ajenas identificables, fotos familiares, pantallas privadas o marcas que incumplan las reglas. Revisar audio, subtítulos y texto en inglés. No incluir logos que sugieran patrocinio oficial.
+El vídeo corresponde a la misma versión fuente del APK y declara diferencias relevantes entre ejecución host/Android. No se afirma que es una grabación del APK si es del editor. No usar aceleración engañosa, edición para esconder pasos manuales o manipulación del estado para fingir funcionalidades.
 
-Subir a YouTube o Vimeo con visibilidad pública conforme al requisito consultado y comprobar reproducción sin sesión del autor. No publicar automáticamente desde un agente sin autorización.
+Revisar audio/texto/subtítulos ingleses, privacidad y derechos. Las salas son sintéticas: no hacen falta fotos o scans del domicilio. Publicar en YouTube/Vimeo según el requisito vigente y solo con autorización; comprobar reproducción pública.
 
-## 5. Texto y formulario
+## 5. Formulario y derechos
 
-`../submission/DRAFT_EN.md` contiene material de trabajo, no una descripción de funciones terminadas. Antes de usarlo, contrastar cada afirmación con evidencia y eliminar placeholders.
+[DRAFT_EN](../submission/DRAFT_EN.md) sigue siendo borrador. Contrastar cada función con evidencia, separar presente/futuro y quitar placeholders antes del envío. Volver a consultar el formulario real.
 
-Volver a leer el formulario vivo. Confirmar tipo de remitente, integrantes, país, correo Start, nombre, Gaming, división correcta, Unity si corresponde, capacidades realmente usadas y descripción de interacción con manos. No guardar correos ni declaraciones personales en Git.
+Confirmar remitente, integrantes, país, correo Start, Gaming, división y Unity reales; no guardar correos o declaraciones personales en Git. La fecha de lanzamiento la decide el propietario. No inferir casillas legales ni condiciones administrativas de un correo de bienvenida.
 
-La fecha de lanzamiento es una decisión del propietario, no una fecha que el agente invente. Preparar inspiración, construcción, mejoras futuras y explicación de lo que se puede jugar ahora. Separar siempre futuro de presente.
+La decisión de no usar hardware no autoriza omitir requisitos del concurso. El propietario revisa el riesgo residual, los derechos de material y el acceso antes de autorizar publicación/envío.
 
-## 6. Revisión final del propietario
+## 6. Preservación
 
-Lorenzo revisa reglas, derechos de material, declaraciones de elegibilidad, contenido de candidatura y acceso de jueces. Ninguna casilla legal se marca por inferencia. No enviar por el mero hecho de que el repositorio tenga un archivo de instrucciones.
+Conservar SHA, versión/hash del APK, versión de vídeo, configuración del simulador, fixtures y confirmación efectiva de submission en un lugar adecuado. Mantener disponibilidad durante evaluación y respetar la congelación tras el cierre. Reconsultar fechas antes de enviar; no depender de una subida de último minuto.
 
-Objetivo interno de envío: 16 de noviembre de 2026. Cierre oficial consultado: 18 de noviembre, 20:00 UTC. Verificar vigencia antes del envío y dejar margen para carga y procesamiento.
+## Gate interno de entrega
 
-## 7. Preservación tras cierre
-
-Conservar commit, versión, hash, copia de materiales y confirmación efectiva de submission en lugar adecuado. La evaluación corresponde al estado de cierre; no sustituir silenciosamente el build o alterar materiales después de la fecha límite. Mantener disponibilidad hasta el anuncio real y atender comunicaciones por los canales oficiales.
-
-No hacer público un secreto o dato personal para demostrar que se envió. ESTADO.md solo debe registrar el hecho, fecha, versión y evidencia no sensible cuando la acción ocurra.
-
-## Gate de entrega
-
-No enviar si hay un P0 abierto, el enlace no fue probado, falta vídeo real, quedan afirmaciones no verificadas, el recorrido requiere mandos o no se resolvieron derechos de material. Un repositorio completo no sustituye ninguna de estas pruebas.
+Se exige build producido, pruebas del alcance simulado, materiales honestos, acceso configurado y autorización. Hardware sigue NO VALIDADO y no es una compra pendiente. No confundir la decisión del equipo de aceptar ese riesgo con garantía de elegibilidad, aceptación del build o buen funcionamiento físico.

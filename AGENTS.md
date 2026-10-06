@@ -1,70 +1,58 @@
 # ROOMBREAKERS — instrucciones para agentes
 
-Estas instrucciones gobiernan el trabajo en este repositorio. Son contexto de proyecto, no permiso para saltarse controles de seguridad, términos de plataformas o instrucciones del propietario.
+## Leer antes de trabajar
 
-## Misión
+Contrato compartido de ejecución, subordinado a las instrucciones del propietario y a las reglas aplicables. Orden: `docs/SIMULATOR_FIRST.md` → `docs/ESTADO.md` → `docs/CONTEXTO.md` → documento del área → `docs/BACKLOG.md`. README es el índice. No deducir funcionalidades del tamaño del repositorio.
 
-Construir un juego MR pequeño y completo para la Meta VR Start Developer Competition 2026. El jugador manipula una maqueta de su habitación y ve consecuencias sincronizadas a escala real. La ambición es competir por calidad demostrable, no afirmar que el proyecto ganará.
+## Decisión del propietario: sin visor físico
 
-**Estado inicial: especificación y herramientas de referencia. No existe todavía una app Unity ejecutable ni un APK verificado.** Consulta siempre `docs/ESTADO.md`; no arrastres afirmaciones antiguas de implementación.
+**Desarrollo y demostración en computador, simulator-first, sin comprar, arrendar, pedir prestado ni exigir acceso a un Quest.** Es una restricción vigente, no una espera hasta que el usuario compre hardware. No poner conseguir/probar un visor en el camino crítico. [Política completa](docs/SIMULATOR_FIRST.md).
 
-## Orden de lectura
+Esta política sustituye las exigencias internas antiguas de hardware en prompts, planes y documentación histórica; no elimina el requisito de una app Meta VR para el concurso. Hardware queda fuera del plan y no validado, nunca aprobado por inferencia.
 
-1. `README.md`, `docs/ESTADO.md`, `docs/CONTEXTO.md`.
-2. `docs/PRODUCTO.md`, `docs/JUEGO.md`, `docs/UX_SEGURIDAD.md`.
-3. `docs/ARQUITECTURA.md`, `docs/ENTORNO.md`.
-4. `docs/PLAN.md`, `docs/BACKLOG.md`, `docs/PRUEBAS.md`.
-5. Antes de preparar entrega: `docs/CONCURSO.md`, `docs/ENTREGA.md`, `docs/FUENTES.md`.
+Unity desktop, Unity con XR Simulator y APK Android son tres evidencias distintas. XR Simulator no es un emulador de Android. La escena de mouse existente no es todavía la integración XR. La siguiente tarea es ejecutar y conectar software real, no reescribir el juego o añadir otro boss.
 
-No reescribir todos los documentos en cada sesión. Leer lo necesario para la tarea y mantener una sola fuente de verdad por asunto.
+## Misión y diseño que se mantienen
 
-## Decisiones que no debes reabrir sin evidencia
+Juego MR pequeño y completo: manipular la maqueta de la habitación produce consecuencias a escala grande. Pip, Motes, Shell y reflector forman el recorrido. Objetivo: calidad demostrable para competir, sin garantía de premio.
 
-- Unity/C# con adaptadores para las herramientas XR de Meta; la selección WebXR del registro inicial no define la arquitectura actual.
-- Una simulación autoritativa en coordenadas canónicas de habitación; dos representaciones, no dos físicas independientes.
-- Manos de extremo a extremo, uso sentado, movimientos cortos y seguridad por encima del espectáculo.
-- MVP offline: sin backend, cuentas, pagos, IA generativa en runtime ni multiplayer.
-- Sin seguimiento ocular obligatorio. Orientación de cabeza no equivale a eye tracking.
-- Geometría del entorno simplificada y consentida; no captura fotográfica, no escaneo permanente ni reconocimiento semántico arbitrario.
-- Interacción base: seleccionar/agarrar, desplazar, orientar, soltar. No vocabulario de poses complejas.
-- No tirar con fuerza ni golpear superficies reales. Soltar en un destino validado sustituye al lanzamiento físico.
-- Solo se transforma contenido virtual. No fingir que se mueve mobiliario físico.
+- Unity/C# y adaptadores Meta; no regresar a WebXR por el registro inicial.
+- Una simulación canónica, dos representaciones, sin físicas ni daño duplicados.
+- Hands-first de principio a fin, uso sentado, movimientos cortos; en desarrollo se usan manos simuladas.
+- Offline: sin backend, login, pagos, multiplayer, IA generativa en runtime ni Terraform.
+- Sin eye tracking obligatorio. Orientación de cabeza no es seguimiento ocular.
+- Solo contenido virtual se mueve. No pedir golpes, lanzamientos fuertes ni contacto con muebles físicos.
+- Geometría simplificada y consentida en la ruta del jugador; fixtures explícitos en desarrollo. No fallback sintético silencioso ni scans privados en Git.
+- No depender de Environment Depth del simulador en Mac; capacidades y API gráfica se comprueban por plataforma/perfil.
 
 ## Forma de trabajar
 
-1. Inspecciona rama, cambios existentes y último estado antes de modificar. Nunca borres trabajo ajeno ni hagas force-push.
-2. Elige el primer ticket desbloqueado del backlog. Declara alcance, dependencias y criterio de aceptación.
-3. Verifica documentación oficial y compatibilidad de versiones antes de escribir APIs de Meta. No inventes clases, permisos, GUID, paquetes o versiones. Registra la combinación que realmente instalaste.
-4. Implementa un incremento pequeño. Prefiere componentes claros a frameworks genéricos. No cambies motor por comodidad del agente.
-5. Ejecuta las pruebas disponibles. Diferencia Python, pruebas Unity, build Android, prueba de visor y prueba con usuarios.
-6. Actualiza `docs/ESTADO.md`: archivos cambiados, pruebas y resultados reales, bloqueos, siguiente paso. Anota una decisión importante en `docs/DECISIONES.md`.
-7. Resume qué está terminado, qué sigue siendo hipótesis y qué acción concreta requiere Lorenzo. Un build no se llama terminado hasta que otro usuario puede instalarlo y completar su recorrido previsto.
+1. Inspeccionar rama, estado y cambios existentes. No borrar trabajo ajeno ni force-push.
+2. Elegir el primer ticket de integración desbloqueado. Consultar SIM-001 a SIM-006 y conservar los IDs RB previos.
+3. Verificar documentación oficial y SDKs instalados. No inventar clases, permisos, versiones, GUIDs, escenas YAML o compatibilidad del simulator standalone.
+4. Implementar un incremento pequeño y probarlo. Conservar lockfiles/meta reales; no cambiar motor por comodidad.
+5. Separar Python/.NET, EditMode, PlayMode, XR Simulator, compilación APK, acceso de canal y hardware. No usar stubs de Unity para fingir una compilación del motor.
+6. Actualizar ESTADO con comandos, commit, versiones y resultados observados. Una métrica sin medición queda pendiente.
+7. Comunicar en español qué cambió y qué evidencia hay. Código/comentarios de APIs y materiales públicos de candidatura en inglés.
 
-No marques un ticket completado porque hay código o porque compila. Debe cumplir su criterio de aceptación. Las métricas sin medición permanecen en blanco, nunca se rellenan con estimaciones.
+No pedir revisión de código rutinaria al usuario. Sí puede hacer falta que active su editor/licencia o dé acceso a una herramienta local: pedir solo la acción necesaria. No exigir USB, Link, data forwarding o compras de visor para desbloquear la tarea.
+
+## Aceptación y seguridad
+
+Un hito de simulación puede completarse con evidencia del runtime real y sus fixtures, sin headset. No se llama por eso 'probado en Quest'. El build Android sigue siendo obligatorio para nuestra ruta nativa; conservar la entrada real de manos/entorno para los jueces, sin mouse obligatorio, autoplay o datos ficticios por defecto.
+
+La prioridad es recuperación, control fiable, correspondencia de escalas, partida completa y acabado. Datos viejos, tracking perdido, foco y relocalización no deben producir daño, recompensas o lanzamientos. Recalibrar solo en un estado seguro. Un error de permisos, sala o almacenamiento debe ser visible y recuperable.
+
+Rendimiento medido en Mac/simulador no certifica fps, sensores, calor o comodidad del Quest. La aspiración de rendimiento en dispositivo permanece como objetivo no medido. No bloquear el avance por la ausencia de hardware, ni esconder el riesgo de esa ausencia.
 
 ## Límites de autonomía
 
-Puedes modificar código y documentación del alcance, escribir pruebas y preparar instrucciones. No compres assets, aceptes acuerdos, cambies visibilidad/licencia del repositorio, habilites servicios pagos, publiques en Store/Devpost ni envíes una candidatura sin autorización explícita. No ejecutes `terraform apply`; no hay infraestructura aprobada.
+Se permiten cambios de código/documentos dentro del alcance y pruebas disponibles. No comprar assets, aceptar acuerdos, cambiar visibilidad/licencia, habilitar infraestructura paga, ejecutar terraform apply, publicar builds/vídeos ni enviar Devpost sin autorización explícita.
 
-La cuenta de Meta, licencias de Unity, autorizaciones USB, instalación física y pruebas de comodidad pueden requerir al usuario. Pide una acción concreta, no le delegues trabajo que sí puedes realizar. Nunca solicites contraseñas, códigos 2FA, recovery codes o secretos en el chat/repo.
+GitHub conectado no implica acceso al editor local. Meta XR Operator es una opción de desarrollo solo cuando sus herramientas reales estén disponibles y verificadas; no prometer automatización física o visual desde un conector de archivos.
 
-## Ingeniería y evidencia
+No solicitar contraseñas, 2FA o secretos en chat/repo. No subir correos, datos personales, invitaciones secretas, claves de firma, planos domésticos, grabaciones privadas o assets sin derechos. Las reglas oficiales prevalecen; verificar declaraciones administrativas antes del envío.
 
-- Separar dominio, input, adaptador de habitación y presentación. Los IDs de entidades son estables; no identificar lógica por nombres de GameObjects.
-- Mantener autoridad única de poses, colisiones y daño. La representación pequeña no origina daño duplicado.
-- Recalibración de maqueta solo fuera de interacción activa; la partida pausa ante pérdida de localización o tracking crítico.
-- Fallos de permisos, tracking, almacenamiento y habitaciones no compatibles tienen recorridos visibles y recuperables.
-- Target de ingeniería propuesto: 72 fps sostenidos en Quest 3/3S; verificar estándar vigente. No confundir con la mención de 60 fps en la rúbrica del concurso.
-- No declarar soporte de un dispositivo sin prueba. Simulador y mouse son herramientas internas, no evidencia hands-first.
-- Código/comentarios de APIs y materiales públicos de submission en inglés; documentación de trabajo y comunicación con Lorenzo en español.
-- No fijar dependencias a `latest` una vez validado el entorno. Commitear los lockfiles generados por herramientas reales.
+## Entrada de trabajo
 
-## Fuente y privacidad
-
-Las reglas oficiales prevalecen sobre nuestros resúmenes. `docs/FUENTES.md` registra fuentes y puntos pendientes. No inventes premios, porcentajes de éxito, datos de pruebas ni citas de jueces. No presentes el nombre provisional como marca registrada.
-
-Repositorio público: nunca subir correos de inscripción, datos familiares/académicos/financieros, credenciales, enlaces secretos de canales, capturas identificables, room scans reales, rutas domésticas o llaves de firma. Usar habitaciones sintéticas en tests. No subir assets comerciales completos ni contenido privado de Start.
-
-## Primera tarea
-
-Lee `prompts/INICIO.md` y ejecuta RB-001. El objetivo inicial es una prueba de doble escala con una entidad; no un menú final, jefe, trailer ni sistema de IA. Si no tienes Unity o visor, ejecuta lo verificable y registra el bloqueo con precisión.
+`prompts/INICIO.md` para preparar integración; `prompts/CONTINUAR.md` para retomar. No reiniciar la preproducción: hay núcleo y herramientas implementados, pero Unity/Meta/XR Simulator/APK siguen sin ejecución acreditada en el estado actual.

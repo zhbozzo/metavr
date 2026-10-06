@@ -1,84 +1,65 @@
 # ROOMBREAKERS — Tu habitación, en tus manos
 
-> Manipula una maqueta de tu habitación, protege a Pip y construye su refugio viendo las consecuencias a escala real.
+> Manipula una maqueta de la habitación, protege a Pip y observa las consecuencias a escala real.
 
-**Estado: encuentro ampliado implementado en código con Motes, Shell, reflector, ayudas contextuales y progreso local. El núcleo se compila/prueba con .NET; presentación Unity y adaptadores Meta/MRUK todavía no se han compilado o ejecutado en Unity/Quest. No hay APK ni entrega final validada.** El nombre es provisional; no hay garantía de premio. [Evidencia actual](docs/ESTADO.md).
+**Decisión vigente: desarrollo y demostración en computador, sin comprar ni depender de un visor físico.** Unity + Meta XR Simulator es la ruta elegida. Esto NO significa que el simulador ya esté instalado o ejecutando el proyecto. [Contexto simulator-first](docs/SIMULATOR_FIRST.md).
 
-## Nuevo: preparar la integración real
+**Estado:** núcleo C# y herramientas probados; encuentro Motes → reflector → Shell, Pip y progreso local implementados en código. Unity/Meta/MRUK, las pruebas del motor, la integración XR Simulator y el APK siguen sin ejecución acreditada. No hay una entrega final validada ni garantía de premio. [Estado y evidencia](docs/ESTADO.md).
 
-Con un Unity 6 instalado/activado, el proyecto cerrado y `UNITY_EDITOR` apuntando a su ejecutable:
+## Qué debe leer cualquier agente
+
+[AGENTS.md](AGENTS.md) → [SIMULATOR_FIRST](docs/SIMULATOR_FIRST.md) → [ESTADO](docs/ESTADO.md) → [CONTEXTO](docs/CONTEXTO.md). Claude y Codex comparten la misma política. Las antiguas exigencias de conseguir/probar un visor quedan sustituidas; los registros históricos no son instrucciones vigentes de compra.
+
+## Próximo paso: ejecutar software real
+
+Con un Unity 6 instalado/activado, proyecto cerrado y `UNITY_EDITOR` apuntando a su ejecutable:
 
 ```bash
 python3 tools/setup_unity_project.py --create
 ```
 
-El script deja que Unity cree el proyecto faltante, conecta el paquete local preservando dependencias y prepara la escena `Assets/RoomBreakersGenerated/DesktopEncounter.unity`. No sobrescribe escenas existentes, no cambia de editor silenciosamente y no fabrica metadata. Abrir esa escena en Unity y pulsar Play es el siguiente recorrido a comprobar.
+El preparador conecta el paquete local y encarga al editor la escena `Assets/RoomBreakersGenerated/DesktopEncounter.unity`; conserva dependencias y escenas existentes. Con Test Framework configurado, añadir `--verify` ejecuta 12 casos EditMode y cuatro PlayMode. **Ese proceso del motor todavía no está acreditado aquí.** [Arranque y recuperación](docs/ARRANQUE_UNITY.md).
 
-Con Test Framework instalado, añadir `--verify` ejecuta las 12 pruebas EditMode y cuatro nuevas pruebas PlayMode de integración. **El preparador C# y esos tests PlayMode están escritos pero todavía no se han ejecutado en Unity aquí.** [Arranque, requisitos, fuentes y recuperación](docs/ARRANQUE_UNITY.md).
+Después corresponde conectar el runtime standalone de Meta, manos simuladas y datos de habitación. La escena desktop con ratón no es esa integración. El simulador no ejecuta una imagen Android: el APK para jueces se compila por separado. [Entorno](docs/ENTORNO.md) · [Plan](docs/PLAN.md) · [Backlog](docs/BACKLOG.md).
 
-## Demo
+## Juego que se conserva
 
-LOAD ROOM → maqueta/portal/ruta → tutorial de captura → tres Motes devueltos → orientar reflector → devolver el pulso de Shell → capturarlo vulnerable → devolverlo al portal → resultado. Tres fallos que consuman la integridad del refugio terminan el encuentro. Pausa, reinicio confirmado y recolocación mantienen una sola autoridad de juego.
+LOAD ROOM → maqueta, portal y ruta → tutorial de captura → tres Motes devueltos → orientar reflector → devolver el pulso de Shell → capturarlo vulnerable → devolverlo → resultado. Tres fallos consumen la integridad del refugio. Hay pausa, reinicio confirmado y recolocación, sin duplicar autoridad de juego.
 
-[Pip, feedback y progreso local](docs/EXPERIENCIA_PROGRESO.md): Pip adapta sus instrucciones a lo que realmente está pasando y refuerza la ayuda cuando no avanzas. Arcos y marcas señalan el objetivo correspondiente en ambas escalas. Terminar una partida registra un solo resultado; una, tres y cinco victorias añaden piezas cosméticas al faro del refugio. No hay recompensas por velocidad ni progreso obtenido al perder el seguimiento.
+Pip da ayuda contextual; una, tres y cinco victorias añaden piezas cosméticas al faro. El reflector actual gira en un soporte fijo; no tiene colocación libre. La mano ampliada y el arte son provisionales. No está calibrada la duración final de seis a ocho minutos.
 
-[Shell y reflector](docs/SHELL_REFLECTOR.md) explica el combate y sus límites. [Primer encuentro](docs/PRIMER_ENCUENTRO.md) documenta la base de geometría/Motes.
+Las rutas de editor existentes se mantienen:
 
-Con el [paquete local](unity/Packages/com.zh.room-breakers/README.md) instalado en Unity:
+- `Tools → RoomBreakers → Open First Encounter (Desktop)`: sala sintética y ratón; Q/E para orientar el reflector. Herramienta de desarrollo, no prueba de Meta XR.
+- `Tools → RoomBreakers → Add Device Room Encounter`: adaptador escrito para rig Meta existente; hay que auditarlo al conectarlo a XR Simulator y conservarlo para la ruta Android de evaluación. No instala ni configura el runtime.
 
-- **`Tools → RoomBreakers → Open First Encounter (Desktop)`** crea una escena de desarrollo con sala sintética y ratón. En el reflector, mantener pulsado y usar Q/E para orientarlo, luego soltar. El editor genera la escena; abrir Game view y Play. Recorrido preparado en código, todavía no observado.
-- **`Tools → RoomBreakers → Add Device Room Encounter`** añade el encuentro a un rig XR existente. Requiere MRUK/Interaction SDK de la familia v207 revisada, manos/cámara reales y passthrough configurado. No instala dependencias ni reemplaza la cámara.
-
-El rig activa Shell por defecto. Desactivar `includeShell` conserva el recorrido básico de tres Motes como práctica. El reflector gira sobre un soporte fijo; no se coloca libremente por la habitación.
-
-La ruta real carga datos del dispositivo con consentimiento; no sustituye un fallo por una habitación falsa. Valida también el corredor de reflexión antes de empezar. La fuente sintética queda identificada y deshabilitada en builds no Development. Los laboratorios `Open Scale Lab` y `Add Meta Hands Harness` permanecen para aislar problemas.
-
-## Progreso y privacidad
-
-Los resultados se guardan localmente con dos checkpoints pequeños y verificación de integridad. Si la copia nueva está dañada y la anterior sigue legible, se recupera esta última; no se garantiza recuperar el último resultado ante cualquier fallo del dispositivo. Archivos incompatibles o ambiguos se conservan sin sobrescribirlos. Si no se puede guardar, el juego continúa y avisa que el progreso pendiente está solo en memoria.
-
-Editor, builds Development, salas sintéticas y modo básico usan progreso de práctica separado. Las victorias de prueba no desbloquean las piezas de la ruta release de dispositivo. Se guardan totales de resultados e identificadores locales recientes de intento: **no se guardan manos, fotos, planos, UUID de anclajes, cuentas ni números de serie**. Sin nube ni telemetría. [Contrato y límites de almacenamiento](docs/EXPERIENCIA_PROGRESO.md).
+También siguen disponibles Open Scale Lab y Add Meta Hands Harness. No se quitaron protecciones de release: el mouse y las salas de laboratorio no pasan a ser sustitutos silenciosos del entorno del jugador.
 
 ## Documentación
 
-| Necesitas | Documento |
+| Tema | Documento |
 | --- | --- |
-| Preparar proyecto y pruebas de integración | [Arranque Unity](docs/ARRANQUE_UNITY.md) |
-| Contexto y decisiones | [Contexto](docs/CONTEXTO.md) |
-| Producto y diseño completo | [Producto](docs/PRODUCTO.md) · [Juego](docs/JUEGO.md) |
-| Trabajo de agentes | [AGENTS.md](AGENTS.md) · [Inicio](prompts/INICIO.md) |
+| Restricción sin visor y fuentes actuales | [SIMULATOR_FIRST](docs/SIMULATOR_FIRST.md) |
+| Contexto y antecedentes | [Contexto](docs/CONTEXTO.md) |
+| Instrucciones de ejecución | [AGENTS](AGENTS.md) · [Claude](CLAUDE.md) · [Inicio](prompts/INICIO.md) · [Continuar](prompts/CONTINUAR.md) |
+| Producto y reglas | [Producto](docs/PRODUCTO.md) · [Juego](docs/JUEGO.md) |
 | Una simulación y dos escalas | [Arquitectura](docs/ARQUITECTURA.md) |
-| Entorno de Unity y Quest | [Entorno](docs/ENTORNO.md) |
-| Base de habitación y Motes | [Primer encuentro](docs/PRIMER_ENCUENTRO.md) |
-| Combate y enseñanza del reflector | [Shell y reflector](docs/SHELL_REFLECTOR.md) |
-| Ayudas, resultado y guardado | [Experiencia y progreso](docs/EXPERIENCIA_PROGRESO.md) |
-| Captura, watchdog y Meta IHand | [Manos](docs/MANOS.md) |
-| Menú, pausa, reinicio y MOVE | [Controles](docs/CONTROLES.md) |
-| Ejecución de comprobaciones | [Autochecks](docs/AUTOCHECKS.md) |
-| Hitos y tareas | [Plan](docs/PLAN.md) · [Backlog](docs/BACKLOG.md) |
-| Estrategia y requisitos | [Concurso](docs/CONCURSO.md) |
-| Evidencia real y límites | [Estado](docs/ESTADO.md) · [Pruebas](docs/PRUEBAS.md) |
-| Preparación del envío | [Entrega](docs/ENTREGA.md) |
-| Referencias oficiales | [Fuentes](docs/FUENTES.md) |
+| Software e integración | [Entorno](docs/ENTORNO.md) · [Arranque Unity](docs/ARRANQUE_UNITY.md) |
+| Habitación, Motes y combate | [Primer encuentro](docs/PRIMER_ENCUENTRO.md) · [Shell](docs/SHELL_REFLECTOR.md) |
+| Pip y guardado | [Experiencia y progreso](docs/EXPERIENCIA_PROGRESO.md) |
+| Manos, menú y seguridad | [Manos](docs/MANOS.md) · [Controles](docs/CONTROLES.md) · [UX](docs/UX_SEGURIDAD.md) |
+| Trabajo y evidencia | [Plan](docs/PLAN.md) · [Backlog](docs/BACKLOG.md) · [Pruebas](docs/PRUEBAS.md) · [Autochecks](docs/AUTOCHECKS.md) · [Estado](docs/ESTADO.md) |
+| Concurso y envío | [Concurso](docs/CONCURSO.md) · [Entrega](docs/ENTREGA.md) |
+| Fuentes previas y decisiones | [Fuentes](docs/FUENTES.md) · [Decisiones](docs/DECISIONES.md) |
 
-## Arquitectura y alcance
-
-Unity/C# y adaptadores Meta, offline. Un estado canónico alimenta ambas vistas, sin duplicar daño o física. Al pasar de Mote a reflector y Shell se reinicia la propiedad de input; no se arrastra una pinza vieja al objeto siguiente. La mano ampliada y las ayudas son feedback visual, no autoridad. Solo se manipula contenido virtual; no se camina a portales ni se golpean muebles.
-
-El núcleo incluye dos tipos de desafío, pero no se ha calibrado la sesión final de seis a ocho minutos ni probado el juego en dispositivo. Quest 3/3S son objetivos, no compatibilidad demostrada. Pip, criaturas, reflector y mano usan arte procedural provisional. Los pulsos y las rutas son sistemas acotados, no física/navegación universal. Las ayudas de Pip son reglas contextuales, no un chatbot.
-
-Sin backend, cuentas, pagos, multiplayer, IA generativa en ejecución, Terraform o eye tracking obligatorio. [Infraestructura](infra/README.md).
-
-## Comprobaciones
-
-Python 3.10+ para referencia, documentos y herramientas:
+## Pruebas disponibles
 
 ```bash
 python3 tools/check_repo.py
 python3 -m unittest discover -s tests -v
 ```
 
-Con SDK .NET y runtime .NET 8, ejecutar todas las suites:
+Con SDK .NET y runtime .NET 8:
 
 ```bash
 for project in validation/RoomBreakers.*.Tests/*.csproj; do
@@ -86,19 +67,19 @@ for project in validation/RoomBreakers.*.Tests/*.csproj; do
 done
 ```
 
-Las suites compilan los archivos reales de `Runtime/Core` como .NET Standard 2.1. Usan salas/entradas sintéticas; Experience y ProgressRecovery también hacen operaciones reales en archivos temporales. **No compilan UnityEngine/SDKs Meta ni prueban almacenamiento Android, gráficos o sensores.** Los resultados y ejecuciones concretos están en [ESTADO](docs/ESTADO.md).
-
-Con proyecto/editor reales y Test Framework instalado:
+Con editor/proyecto reales y Test Framework:
 
 ```bash
 python3 tools/run_unity_checks.py --platform EditMode
 python3 tools/run_unity_checks.py --platform PlayMode
 ```
 
-El verificador exige los 12 casos EditMode anteriores o los cuatro casos PlayMode nuevos, según el modo. Rechaza resultados antiguos/incompletos y comprueba la versión real del editor. No ejecuta APK ni Quest. Las pruebas PlayMode usan componentes Unity reales y proveedores sintéticos explícitos, con progreso aislado en memoria. [Alcance de autochecks](docs/AUTOCHECKS.md).
+.NET/Python no compilan Unity/Meta. EditMode/PlayMode no prueban sensores. XR Simulator no acredita ejecución Android ni rendimiento Quest. La compilación APK no acredita instalación. [Protocolo de evidencia](docs/PRUEBAS.md).
 
-## Trabajo y privacidad del repositorio
+## Entrega y privacidad
 
-Actualizar ESTADO con evidencia real al terminar cada incremento. No marcar una API escrita como una integración probada ni una prueba .NET como una sesión en visor. Mantener errores y accesos faltantes explícitos sin delegar al usuario modificaciones rutinarias.
+Nuestra ruta nativa conserva APK y acceso Competition para jueces, además de vídeo de gameplay desde XR Simulator; no se cambia a una entrega exclusiva de escritorio. [Procedimiento](docs/ENTREGA.md). Publicación y candidatura requieren autorización.
 
-Repositorio público: no subir credenciales, correos privados, números de serie, invitaciones secretas, geometría real de habitaciones o assets sin autorización. No se ha elegido una licencia de redistribución para el código propio; esa decisión corresponde al titular.
+El juego es offline. El progreso guarda resultados, no manos, fotos, planos, UUID de anclajes, cuentas o números de serie. Práctica y release permanecen separados; la recuperación de dos checkpoints no garantiza conservar el último resultado ante cualquier fallo. Sin backend, pagos, telemetría, Terraform o eye tracking obligatorio.
+
+Repositorio público: no subir secretos, invitaciones, claves, datos domésticos o assets sin autorización. No se cambia licencia ni visibilidad. Esta actualización de contexto no instala herramientas ni modifica el código de gameplay.

@@ -1,64 +1,54 @@
 # Concurso y estrategia de candidatura
 
-Fuentes verificadas el 4 de octubre de 2026 mediante Devpost: overview, reglas, requisitos de entrega y fechas. Consultar originales en FUENTES.md [S01, S02]. Este documento es una guía operativa; no sustituye reglas ni asesoría legal. El propietario debe revisar y confirmar sus declaraciones.
+Guía operativa, no sustituto de reglas ni declaraciones del propietario. Overview y requisitos se reconsultaron mediante Devpost durante la actualización simulator-first. Fuentes originales anteriores en FUENTES.md; referencias de la nueva política en [SIMULATOR_FIRST](SIMULATOR_FIRST.md).
 
 ## Posición elegida
 
-Gaming / New Experience, siempre que el proyecto realmente se haya concebido y construido dentro de la ventana elegible. Motor previsto: Unity. No enviar WebXR por haberlo elegido al registrarse si el build final es nativo.
+Gaming / New Experience, sujeto a que el proyecto cumpla realmente la ventana y demás condiciones. Motor Unity; la elección WebXR del registro no cambia el build utilizado. La candidatura debe enseñar una acción: controlar una maqueta con consecuencias a escala grande, no enumerar SDKs o afirmar aval de Meta.
 
-La candidatura debe explicar una experiencia: controlas una miniatura de tu espacio y ves la intervención a escala real. No una lista de SDKs ni una promesa de que Meta la usará en marketing.
+## Plan sin hardware
 
-## Rúbrica convertida en trabajo
+El propietario decidió desarrollar y demostrar todo en computador, sin comprar, arrendar, pedir prestado ni depender de visor físico. Esta decisión cambia la ejecución interna, no los requisitos del concurso.
 
-Las cuatro categorías tienen peso igual (25% cada una) en las reglas consultadas.
+What to Submit permite mostrar el proyecto 'via XR Simulator, or another equivalent emulator'. La misma sección pide APK y canal Competition con Invite URL para Unity. Por tanto, vídeo simulado permitido no equivale a entregar solo vídeo, solo repositorio o solo aplicación desktop.
 
-| Criterio | Tesis de ROOMBREAKERS | Evidencia que debe existir |
-| --- | --- | --- |
-| Innovación y creatividad | La maqueta del espacio real permite intervenir a distancia con manos | Vídeo de una captura en dos escalas; diferencia honesta frente a precedentes |
-| Diseño de experiencia | Una partida sentada, breve, comprensible y adaptable | Inicio observado, captura intuitiva, final, pausa y reinicio sin controles |
-| Implementación técnica | Correspondencia estable y geometría que altera decisiones | Misma entidad en ambas vistas, pruebas de sala no vista y perfil de APK |
-| Calidad y presentación | Una estética coherente y una consecuencia inmediatamente legible | Arte/audio propios o licenciados, vídeo real, instrucciones probadas |
+El proyecto sigue siendo hands-first de extremo a extremo. Durante el desarrollo se prueban manos simuladas; el APK conserva input de manos del dispositivo. La escena de ratón no constituye esa prueba del SDK ni hace opcionales las manos del jugador. Registrar que la validación física no fue realizada.
 
-No se compensa un recorrido roto con más efectos. No reclamar funcionalidades todavía previstas. No fabricar métricas de uso, testimonios ni supuestas preferencias privadas de los jueces.
+## Rúbrica convertida en evidencia
 
-## Requisitos y guías que no se deben confundir
+Los pesos consignados en la consulta histórica fueron cuatro categorías iguales; reconsultar criterios/reglas antes de enviar. No adjudicar probabilidad de éxito por una tabla.
 
-Las reglas exigen uso con manos de extremo a extremo. La frase oficial es: "Fully usable with hands end-to-end. Controller support optional." El diseño sentado y la experiencia breve aparecen como guías; las adoptamos como requisitos internos.
+| Criterio de trabajo | Evidencia prevista bajo este plan |
+| --- | --- |
+| Innovación | Captura a dos escalas en runtime, explicación honesta de precedentes |
+| Experiencia | Recorrido breve, tutorial, final, pausa/reinicio con manos simuladas |
+| Técnica | Estado único, SDK/runtime reales, geometría con efecto y APK compilado; no atribuir perfil host al Quest |
+| Presentación | Arte/audio autorizados, ejecución filmada, instrucciones y limitaciones claras |
 
-Nuestra prueba sentada no significa que el juego funcione literalmente en cualquier avión o vehículo. Necesita un entorno que proporcione una configuración espacial válida.
+No compensar un recorrido roto con efectos. El diseño sentado/estacionario y las sesiones breves se conservan como requisitos internos. No afirmar que funciona en cualquier entorno físico o vehículo.
 
-La rúbrica menciona rendimiento de al menos 60 fps. La página técnica de Meta distingue fps de frecuencia de pantalla y contempla frecuencias permitidas y excepciones. Adoptamos 72 fps como objetivo propio de fluidez, no como una cita del mínimo del concurso. Ver FUENTES.md [S06] y PRUEBAS.md.
+## Rendimiento
 
-## Revisión administrativa antes del envío
+La mención previa de 60 fps en rúbrica y el objetivo de ingeniería de 72 fps deben contrastarse con reglas/documentación vigentes antes de entrega. No son cifras medidas de ROOMBREAKERS. El rendimiento de XR Simulator depende del host; no certifica rendimiento del APK ni del dispositivo. Reportar el nivel real de cada medición.
 
-Verificar membresía Start del remitente, Developer Access, edad/jurisdicción y demás condiciones de todos los participantes. No asumir que un correo de bienvenida acredita cada condición. Confirmar si la entrada es individual, de equipo u organización; la existencia de una empresa no decide automáticamente el tipo de participación.
+## Revisión administrativa
 
-Consultar la limitación de entradas y la condición de una recompensa por entrada en las reglas. No presupuestar acumulación de premios. No perseguir premios de IA o multiplayer agregando sistemas que empeoren el producto.
+Verificar Start, Developer Access, edad, jurisdicción, integrantes y condiciones. Una bienvenida no acredita todos los requisitos. Confirmar si participa individuo, equipo u organización. Mantener autoría y procedencia; no declarar proyecto New con código previo inelegible.
 
-Mantener autoría y procedencia de código/assets. No usar una base anterior como proyecto nuevo sin resolver elegibilidad. Herramientas y dependencias autorizadas deben documentarse; permisos para assets no significan permiso para redistribuir sus fuentes en GitHub.
+Consultar límites de entradas/premios en las reglas, sin presupuestar premios acumulados. No añadir IA o multiplayer solo para otra categoría. Confirmar campos obligatorios del formulario, especialmente capacidades e interacción con manos; no guardar datos personales en Git.
 
-## Entrega nativa prevista
+## Entrega
 
-APK en un canal nuevo llamado Competition y enlace de invitación accesible para evaluación; vídeo público menor de tres minutos; texto y materiales en inglés o traducción según reglas; formulario completo. Los campos reales se vuelven a consultar antes de enviar, no se asume que el esquema nunca cambia.
+APK real, canal Competition/acceso, vídeo público menor de tres minutos y formulario completo. El vídeo de runtime debe corresponder a la misma revisión fuente y declarar diferencias con el APK. No afirmar ejecución del APK dentro de XR Simulator: no tiene capa Android.
 
-En el formulario consultado, descripción de capacidades y de interacción con manos son campos requeridos. Aunque algún texto general lo sugiera opcional, completar el campo que el formulario exige.
+Mantener acceso durante evaluación y respetar el estado de cierre. Publicar/subir/enviar requiere autorización. [Procedimiento](ENTREGA.md) · [Borrador](../submission/DRAFT_EN.md) · [Instrucciones](../submission/JUDGE_INSTRUCTIONS_EN.md).
 
-Mantener acceso gratuito suficiente durante evaluación y hasta anuncio. Preservar la versión de cierre: no cambiar silenciosamente el build después de la fecha límite. Las condiciones de modificación y acceso se revisan en las reglas completas.
+## Calendario heredado, revalidar antes de enviar
 
-## Fechas y discrepancias
+La consulta anterior del 4 de octubre registró cierre el 18 de noviembre de 2026 a las 20:00 UTC y objetivo interno el 16 de noviembre. Había discrepancias entre fechas de evaluación en reglas y campos estructurados. Esta actualización no resuelve ni revalida esas fechas: consultar el calendario/reglas vivos antes de programar publicaciones. Mantener acceso hasta el anuncio efectivo.
 
-Cierre coincidente en reglas y herramienta: 18 de noviembre de 2026, 20:00 UTC, equivalente a 12:00 Pacific y 17:00 Santiago para esa fecha.
+## Qué no se debe afirmar
 
-Las reglas describen evaluación alrededor del 18 de noviembre al 9 de diciembre; los campos estructurados consultados indican inicio 23 de noviembre y final 10 de diciembre a las 03:00 UTC. El anuncio se sitúa alrededor del 11 de diciembre; la herramienta devuelve 18:00 UTC ese día. No resolver esa diferencia adivinando: reconsultar y mantener acceso durante todo el intervalo y hasta el anuncio efectivo.
+No presentar una sala sintética como scan real, perfiles como dispositivos probados, fps de editor como fps Quest, tests .NET como integración SDK, ni pertenencia a Start como patrocinio. No usar vídeo generado por IA como prueba. No inventar testimonios o promesas de marca.
 
-Objetivo interno: enviar el 16 de noviembre, con candidato listo antes. Las fechas de PLAN.md son metas de trabajo, no comunicaciones oficiales.
-
-## Riesgos de presentación
-
-No incluir imágenes de terceros identificables, marcas o publicidad en el gameplay o vídeo sin revisar las restricciones completas. Preparar una habitación de captura sin fotos familiares, pantallas privadas o logos visibles.
-
-No indicar patrocinio, colaboración oficial o aval de Meta. Ser miembro de Start no constituye ese aval. Revisar también los derechos/licencias que la candidatura concede a organizadores antes de enviar; no hacer declaraciones legales en nombre del usuario.
-
-## Regla para elegir nuevas funciones
-
-La función debe mejorar una interacción observada, resolver un problema de fiabilidad o aportar evidencia clara para un criterio. Si solo sirve para añadir una palabra al pitch, queda fuera.
+La falta de validación física es un riesgo explícito del plan, no evidencia de buen funcionamiento. No exige comprar para continuar; sí exige transparencia y una app nativa conforme a los requisitos. El propietario decide el envío con esa información.
