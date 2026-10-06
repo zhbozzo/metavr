@@ -1,46 +1,52 @@
 # ROOMBREAKERS — submission working draft
 
-**NOT READY TO SUBMIT.** This file describes the intended product. There is currently no verified playable Unity build in this repository. Replace all verification fields and rewrite claims to match the final tested build before submission.
+**NOT READY TO SUBMIT.** Rewrite capability claims to match the final observed runtime and build. There is currently no verified APK or completed XR Simulator run documented for this project. [Development policy](../docs/SIMULATOR_FIRST.md).
 
 ## Identity
 
 Working title: ROOMBREAKERS
 Proposed tagline: Hold your room in your hands. Defend it by moving its miniature.
 Proposed track: Gaming
-Proposed division: New, subject to actual compliance with the competition window.
-Planned build path: Unity
-Target launch date: [OWNER DECISION REQUIRED]
-Tested devices and operating systems: [NOT TESTED]
+Proposed division: New, subject to actual eligibility
+Build path: Unity
+Target launch date: [OWNER DECISION]
+Development host / Unity / SDK / simulator: [VERIFY]
+Simulator profiles exercised: [NOT YET VERIFIED]
+Physical headsets tested by the team: **None**
 Build version / commit / APK hash: [NOT AVAILABLE]
 
-Do not store account emails, team-member personal details or private release-channel invitation URLs in this public file.
+Do not store account emails, personal team details, signing keys or private channel invitations in this public file.
 
-## Inspiration — draft
+## Inspiration
 
-What would it feel like to hold the room you are sitting in? ROOMBREAKERS explores the connection between a small, tangible action and a large consequence in a familiar physical space. Instead of asking players to walk across their room, the concept places a miniature of a usable room sector within comfortable reach.
+ROOMBREAKERS explores a small hand action with a large consequence in a familiar room. Instead of asking the player to walk toward a distant threat, it brings a simplified miniature within reach. Room-based MR and scale-changing games have precedents; the intended contribution is their combination with hands-first defense influenced by room geometry, not the invention of miniature worlds.
 
-Room-based mixed reality and scale-changing interactions have precedents. Our intended contribution is their combination with hands-first tactical play that responds to real room geometry, rather than a claim to have invented miniature worlds.
+## Intended experience — audit against the candidate
 
-## Intended experience — replace with verified present-tense description at release
+Protect Pip by manipulating miniature creatures and a reflector. An enlarged hand connects each miniature capture with its room-scale consequence. Motes can be returned directly; Shell first requires a reflected attack to expose its armor. The current code includes a tutorial, outcome, restart, contextual guidance and local cosmetic progress. The audiovisual/runtime experience still requires execution and verification.
 
-Players protect Pip's refuge by manipulating miniature creatures and tools. An enlarged spectral hand links a miniature capture to its full-sized consequence. A basic invader can be returned through a gate; an armored invader first needs its slow virtual attack reflected. The proposed run is seated, brief and complete, with a tutorial, an ending and a restart.
+Room geometry should alter placement or trajectories. Prove this using identified synthetic environments before claiming it. Do not describe simulation data as a live scan. Recovery paths should handle tracking, focus, invalid rooms and storage errors visibly.
 
-The design calls for room obstacles and valid surfaces to affect placement or trajectories. This must be demonstrated in the build before it is claimed in the submission. Planned recovery paths pause play when tracking or room localization fails.
+## Construction and validation
 
-## Planned construction
+Unity/C#, Meta SDK adapters and one canonical simulation driving two views. Offline, without accounts, multiplayer or generative AI services. The team chose a computer-only development and demonstration plan, using Meta XR Simulator rather than buying or relying on a physical headset.
 
-Unity and C# with verified Meta XR, interaction and room-utility integrations. A single canonical simulation drives two visual representations; miniature input is converted into room coordinates before changing game state. The MVP is designed to run locally without accounts, multiplayer or generative AI services.
+The final deliverable remains an Android APK for Meta VR. XR Simulator is an API-level runtime, not an Android hardware emulator; simulator execution and APK compilation are separate evidence. Keep real hand/room adapters in the APK. Do not turn desktop mouse controls or fixtures into release dependencies.
 
-Installed versions, actual implementation and performance evidence: [ADD AFTER VERIFICATION]. Do not describe the Python reference model as a Quest implementation.
+After the simulator work actually runs, include:
 
-## Hand interactions — evidence to collect
+> Developed and demonstrated using Meta XR Simulator. Physical-headset validation has not been performed by the team.
 
-Demonstrate launch, placement, selection, movement, orientation, release, pause, settings, ending and restart without controllers. Document how selection is made stable, how invalid targets are handled and what happens when hand tracking is lost. Only claim one-hand assistance after completing its entire test route.
+Installed versions, executed checks, fixtures, profile differences and observed performance: [ADD ACTUAL EVIDENCE]. Never report host frame rate as Quest frame rate.
 
-## Future work — not current capabilities
+## Hand interactions
 
-Possible extensions include more valid encounter layouts, cosmetic progression and reliable cross-session refuge placement. None is a reason to postpone a stable, enjoyable core interaction. Final plans should reflect the implemented product and user feedback.
+Demonstrate launch, placement, selection, movement, orientation, release, pause, ending and restart through simulated hand input in the XR runtime. Describe which adapter was exercised, ownership/selection stability, invalid targets and recovery. A mouse-only Unity scene or synthetic samples injected into .NET do not establish the runtime integration.
 
-## Final claim audit
+## Future work
 
-Every capability has a working-build demonstration. Every numerical result has its test context. Planned work is clearly future tense. The public video represents the submitted build. The owner has reviewed eligibility, asset rights and all required form fields. No guarantees of winning or sponsor endorsement appear in the submission.
+More valid encounter layouts, improved accessibility and final art may follow the proven core. Cosmetic progress already exists in code; do not list it as wholly unimplemented, or describe it as finished on hardware. Cross-session spatial placement remains a distinct possible extension.
+
+## Final audit
+
+Every present-tense capability maps to observed evidence; planned work is future tense. Video and APK use the declared source revision, with meaningful platform differences disclosed. No unperformed device tests, hardware guarantees, invented metrics or sponsor endorsement. The owner reviews eligibility, access, rights and required fields before authorizing submission.

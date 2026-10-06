@@ -1,91 +1,105 @@
-# Backlog ejecutable
+# Backlog ejecutable — sin visor físico
 
-Todos los tickets empiezan pendientes. Solo ESTADO.md registra avance real. P0 = necesario; P1 = condicionado al funcionamiento de P0. Los tests de referencia existentes no completan un ticket de Unity.
+Actualizado por [SIMULATOR_FIRST](SIMULATOR_FIRST.md). Se conservan IDs RB, pero las aceptaciones que exigían hardware se sustituyen por niveles explícitos de simulación. No se marcan tickets completos por cambiar este documento. [ESTADO](ESTADO.md) manda sobre avance real. P0 necesario; P1 solo después de integración.
 
-## RB-001 · P0 · Entorno real
+## Cola inmediata de integración
 
-Depende: acceso al equipo de desarrollo. Ejecutar ENTORNO.md, crear proyecto Unity real, fijar combinación de SDKs y crear escena mínima. Aceptación: proyecto abre sin errores y APK mínimo arranca en el dispositivo declarado; registrar versiones. Sin visor, estado bloqueado, no completo.
+**SIM-001 · P0:** ejecutar bootstrap, importar/compilar editor y los tests reales existentes. Depende de software/acceso al host, no de un visor. Aceptación: 12 EditMode, cuatro PlayMode y escena observada; registrar fallos en vez de reescribir tests para ocultarlos.
+
+**SIM-002 · P0:** conectar XR Simulator standalone con rig/provider/SDK y manos simuladas. Depende de SIM-001. Aceptación: captura/menú mediante datos de runtime en perfil Quest 3, sin controller físico ni DesktopEncounterHand como sustituto.
+
+**SIM-003 · P0:** habitación del runtime y fixtures explícitos, misma simulación. Depende de SIM-002. Aceptación: encuentro completo y recuperación, procedencia de datos visible. Adaptadores faltantes se implementan y prueban, no se dan por hechos.
+
+**SIM-004 · P0:** matriz de salas e input, perfil 3S/FoV compatible, replay y regresiones. Depende de SIM-003. Aceptación: fixtures esperados, resultados por caso, fallos corregidos y medición del host sin atribuirla al Quest.
+
+**SIM-005 · P0:** generar y revisar APK Android sin instalación propia. Depende de SIM-003 y revisión de configuración. Aceptación: archivo, hash, versiones, entrada real de manos/entorno y ausencia de dependencias de laboratorio en release. Hardware no validado.
+
+**SIM-006 · P0:** vídeo XR Simulator, instrucciones transparentes y acceso Competition autorizado. Depende de SIM-004/005. Aceptación: materiales del mismo candidato, diferencias declaradas y cumplimiento de requisitos vigentes; envío solo autorizado.
+
+## RB-001 · P0 · Entorno real de software
+
+Crear/importar con ENTORNO y ARRANQUE_UNITY; fijar combinación compatible. Aceptación de editor en SIM-001 y de XR en SIM-002. Separar APK en SIM-005. Se elimina la antigua condición de poseer/probar visor.
 
 ## RB-002 · P0 · Marcos y pruebas
 
-Depende: RB-001 para implementación Unity. Trasladar la matemática de ARQUITECTURA.md a un servicio testeable. Aceptación: round-trip posición/rotación, orígenes distintos, escala positiva, rechazo de valores no finitos y recalibración. Incluir rotaciones 6DoF en tests Unity; Python solo cubre yaw.
+Depende de editor para contraste Unity. Mantener núcleo 6DoF implementado y tests .NET; comprobar correspondencia con Transform, escalas, rotaciones, valores inválidos y recalibración. Python no sustituye los tests del motor.
 
 ## RB-003 · P0 · Estado único, dos vistas
 
-Depende: RB-002. Una entidad con ID y pose canónica, representación grande y pequeña. Aceptación: mover cualquiera mediante comando cambia ambas; no hay simulación duplicada; maqueta no se incluye recursivamente.
+Depende de RB-002. Una entidad canónica, dos representaciones; movimiento y rotación coinciden sin física duplicada ni maqueta recursiva. Aceptación observada en PlayMode/XR Simulator, no inferida de código.
 
 ## RB-004 · P0 · Captura con manos
 
-Depende: RB-003. Adaptador de input, hover, lock, offset, desplazamiento, destino y cancelación. Aceptación: 40 intentos registrados; selección inequívoca; liberar en destino inválido restaura pose; dos manos no se apropian de la misma entidad.
+Depende de RB-003/SIM-002. Conservar hover, lock, offset, destino, arbitraje y watchdog. Probar intentos deliberados mediante manos simuladas izquierda/derecha y errores de input. No llamar a su tasa de éxito precisión de tracking físico.
 
 ## RB-005 · P0 · Feedback de escala
 
-Depende: RB-004. Mano ampliada visual y resaltado de correspondencia. Aceptación: persona nueva identifica relación sin explicación larga; visual no tapa objetivo, UI ni manos reales; se puede reducir intensidad.
+Depende de RB-004. Mano ampliada y correspondencia visibles sin tapar objetivo/UI. Revisar ambos ojos/FoV del perfil. Observación externa de escritorio cuando sea viable; sin afirmar confort en visor.
 
 ## RB-006 · P0 · Colocación, pausa y recuperación
 
-Depende: RB-004. Ajustar maqueta en pausa; manejar tracking y foco. Aceptación: cero daño o avance de timers en pausa; ningún lanzamiento al perder tracking; no salto al recalibrar. Prueba sentado obligatoria.
+Depende de RB-004. Recolocar solo en estado seguro, congelar daño/timers, cancelar tracking/foco sin lanzamiento. Aceptación con poses sentadas simuladas y secuencias de interrupción; no requiere ensayo físico.
 
-## RB-007 · P0 · Adaptador de habitación real
+## RB-007 · P0 · Fuentes de habitación
 
-Depende: RB-001. Permisos, carga y normalización a RoomSnapshot. Aceptación: distinguir fixture sintético de datos reales; denegación y fallo visibles; no persistir geometría privada.
+Depende de SIM-002. Runtime simulado/fixtures explícitos para desarrollo; conservar adaptador de datos consentidos para Android. Distinguir origen, permiso/fallo y revisión de sala. No guardar geometría privada ni activar fallback falso.
 
-## RB-008 · P0 · Generador de configuración válida
+## RB-008 · P0 · Configuración válida
 
-Depende: RB-007 y RB-002. Sector frontal, ruta, grieta, refugio y obstáculo. Aceptación: dos disposiciones generan decisiones diferentes; detectar imposibilidad y ofrecer reubicar. No navegación arbitraria entre muebles.
+Depende de RB-007/002. Sector frontal, ruta, grieta, refugio y obstáculos. Dos fixtures cambian decisiones; imposibilidad produce recuperación antes de jugar. No navegación universal por muebles.
 
 ## RB-009 · P0 · Portal anclado
 
-Depende: RB-008. Portal visual simple sobre superficie válida. Aceptación: estable mientras se mueve la cabeza; relocalización recuperable; no requiere tocar pared. Rotura decorativa compleja es P1.
+Depende de RB-008. Ubicación coherente bajo poses de cabeza y cambios de localización simulados. No pide tocar paredes. Estabilidad física no validada; rotura decorativa compleja P1.
 
 ## RB-010 · P0 · Mote y cierre
 
-Depende: RB-004, RB-008, RB-009. Spawn, ruta, captura, devolución, energía e integridad. Aceptación: recompensa solo una vez, no queda grieta imposible de cerrar, estados inválidos rechazados.
+Depende de RB-004/008/009. Mantener spawn, ruta, captura, devolución, energía e integridad; validar una sola resolución y estados imposibles. Reutilizar el código existente.
 
 ## RB-011 · P0 · Reflector y proyectil
 
-Depende: RB-008 y RB-006. Herramienta orientable, preview y reflexión. Aceptación: normal válida, colisión única, vida/rebotes limitados y una solución alcanzable. Operación secuencial con una mano.
+Depende de RB-008/006. Orientación sobre soporte fijo, preview, rebote único y geometría. Una mano simulada completa la acción. No ampliar a colocación libre antes de probar integración.
 
 ## RB-012 · P0 · Shell
 
-Depende: RB-011 y RB-010. Protección, señal previa, proyectil, vulnerabilidad y captura. Aceptación: cada estado se entiende por forma/animación además de color; no vuelve a armadura estando sujeto; no ataques durante tutorial pausado.
+Depende de RB-011/010. Protección, aviso, pulso, vulnerabilidad y captura. Estados distinguibles además de color; no rearme durante Held ni daño durante aprendizaje pausado.
 
-## RB-013 · P0 · Sesión completa y Pip mínimo
+## RB-013 · P0 · Sesión y Pip
 
-Depende: RB-010 y RB-012. Tutorial, progresión, victoria, derrota, reinicio y guía contextual. Aceptación: jugador externo completa sesión y reinicia con manos. Variante final reutiliza reglas; no nueva física.
+Depende de RB-010/012. Recorrido completo y reinicio con manos simuladas, más guía de tiempo activo. Captura del runtime real y pruebas de estados; no convertir autoplay en demostración.
 
-## RB-014 · P0 · Preferencias y modo asistido
+## RB-014 · P0 · Accesibilidad
 
-Depende: RB-013. Mano dominante, velocidad, colocación, texto y efectos. Aceptación: modo una mano completo, no simultaneidad obligatoria, señales redundantes. No declarar cobertura universal.
+Depende de RB-013. Operación secuencial con una mano, mano dominante, colocación, texto y efectos. Revisar en perfiles/escenarios, sin prometer cobertura física universal. Ajustes faltantes permanecen pendientes.
 
-## RB-015 · P0 · Guardado local
+## RB-015 · P0 · Progreso local
 
-Depende: RB-013. Preferencias y progreso versionados, reset y recuperación. Aceptación: simular archivo corrupto y fallo de escritura sin bloquear sesión; no guardar room mesh ni datos identificables.
+Depende de RB-013. Conservar checkpoints y separación práctica/release. Probar archivos corruptos, formatos futuros y errores sin bloquear juego. Almacenamiento del host no acredita Android; no guardar manos/room mesh.
 
-## RB-016 · P0 · Pruebas observadas
+## RB-016 · P0 · Pruebas observadas en computador
 
-Depende: RB-013 y RB-014. Aplicar PRUEBAS.md a nuevos usuarios. Aceptación: resultados reales, límites de muestra y problemas priorizados; consentimiento para grabación; ninguna métrica inventada.
+Depende de RB-013/014. Revisión del runtime y, cuando sea posible, usuarios nuevos de escritorio. Registrar muestra, ayuda y errores, no testimonios inventados ni mediciones de comodidad VR.
 
-## RB-017 · P0 · Robustez de habitaciones
+## RB-017 · P0 · Robustez de habitaciones simuladas
 
-Depende: RB-008 y RB-013. Probar distribución estrecha, vacía, obstruida, modificada y no vista. Aceptación: gameplay válido o recuperación clara en cada caso; no prometer que todas funcionan.
+Depende de RB-008/013. Matriz SIM-004 con fixtures reservados y casos inválidos. Resultado: configuración jugable o rechazo claro; no todos los espacios deben aceptarse.
 
-## RB-018 · P0 · Perfil en hardware
+## RB-018 · P0 · Rendimiento del host y presupuesto Android
 
-Depende: RB-013. Medir CPU/GPU/fps y sesión repetida; limitar entidades, shaders y allocs. Aceptación: evidencia del APK con OS/SDK/dispositivo, tiempos y fallos; comparar con objetivo de 72 fps y requisitos actuales. Perfil con grabación separado del normal.
+Depende de RB-013. Medir el editor/runtime: memoria, tiempos, allocs y acumulación en sesiones repetidas. Presupuesto conservador de objetos/shaders. No presentar esos datos como fps Quest. Perfil físico queda fuera del plan y NO VALIDADO, no bloquea SIM-005.
 
-## RB-019 · P0 · Arte, audio y licencias
+## RB-019 · P0 · Arte, audio y procedencia
 
-Depende: RB-005 y RB-013. Aplicar ARTE_AUDIO.md y auditoría de procedencia. Aceptación: selección, acierto, fallo, peligro y final legibles; assets autorizados; sin material privado ni logos ajenos en captura.
+Depende de RB-005/013. Feedback y final legibles en ejecución, recursos autorizados y capturas sin datos privados. Audio reproducido en host no certifica espacialización/confort de headset.
 
-## RB-020 · P0 · Release y candidatura
+## RB-020 · P0 · Release candidato y candidatura
 
-Depende: todos los P0 previos. ENTREGAR solo con autorización del propietario. Preparar APK, canal Competition, hash, instrucciones, vídeo y formulario real. Aceptación: instalación por otra cuenta autorizada y coherencia entre lo mostrado y el build. Mantener evidencia y acceso según reglas.
+Depende de integración, pruebas de alcance simulado y SIM-005/006. APK, canal, hash, vídeo y formulario, con autorización. No exigir ensayo físico por otra cuenta como paso obligatorio; registrar acceso web revisado por separado de instalación no verificada. No enviar con bugs bloqueantes conocidos.
 
-## P1 — No comenzar antes de los hitos principales
+## P1
 
-Anclaje persistente del refugio; cosméticos adicionales; tercer layout; tutorial alternativo más elaborado; variante final especial. Cada uno requiere aceptación medible y presupuesto de rendimiento. Si amenaza el envío, se elimina.
+Más encuentros, anclaje persistente, cosméticos extra, tutorial alternativo y variante final espectacular. Tercer layout no es P1 si hace falta para la matriz de prueba: fixtures de robustez son P0. Ningún P1 puede reintroducir compra/acceso obligatorio a visor.
 
-## Plantilla para nuevos tickets
+## Plantilla
 
-ID, objetivo de usuario, prioridad, dependencias, archivos/módulos afectados, comportamiento normal, casos de error, criterio de aceptación, pruebas previstas, evidencia real y decisión de alcance. No abrir un ticket sin explicar qué mejora del juego justifica su coste.
+ID, objetivo, dependencia de software, archivos, ruta normal/error, nivel de aceptación, pruebas previstas, evidencia y límites. Nunca sustituir 'sin visor' por 'probado en visor'.

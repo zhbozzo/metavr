@@ -1,50 +1,52 @@
 # Contexto del proyecto
 
-Fecha base: 4 de octubre de 2026. Propietario del repositorio: `zhbozzo`. Producto provisional: **ROOMBREAKERS**. Repositorio: `metavr`.
+Base: 4 de octubre de 2026. Decisión actualizada: 5 de octubre de 2026, hora de Chile. Propietario: `zhbozzo`; repositorio `metavr`; producto provisional **ROOMBREAKERS**.
 
-## Qué pidió Lorenzo
+## Qué quiere el propietario
 
-Dejar en este repositorio el contexto, diseño completo de la app, instrucciones para agentes, arquitectura, configuración, plan de ejecución y preparación de la candidatura. El objetivo es construir una experiencia suficientemente original, cómoda, estable y atractiva como para competir seriamente en la Meta VR Start Developer Competition 2026. No basta una idea vistosa ni una carpeta de documentación.
+Dejar aquí el producto, contexto, instrucciones para agentes, arquitectura, plan, pruebas y preparación de candidatura. Construir un juego original y pulido que permita mostrar el valor espacial de Meta, no solo una lista de APIs o un repositorio grande. No hay garantía de premio ni acceso especial a jueces.
 
-La tesis expresada por Lorenzo es que Meta pueda mostrar el resultado como una demostración convincente de su plataforma. La traducimos en una prueba: alguien debe entender el valor de la experiencia viendo una acción real, sin escuchar una lista de APIs. No asumimos acceso especial a jueces, acuerdos promocionales ni probabilidad de premio.
+**Restricción confirmada: no quiere comprar lentes ni depender de un dispositivo físico; quiere desarrollar y demostrar todo en entorno de computador.** Se adopta simulator-first como plan completo, no como fase antes de comprar o pedir un Quest. La [política vigente](SIMULATOR_FIRST.md) sustituye las obligaciones internas de hardware anteriores.
 
-## Antecedentes relevantes, informados en la conversación
+## Antecedentes relevantes
 
-- Se creó un equipo de desarrollo llamado ZH Development y una app de dashboard con nombre provisional ZH Spatial AI.
-- Lorenzo recibió un correo de bienvenida al programa Start y avanzó por el registro del concurso. Esta documentación no reemplaza verificar su estado actual en ambas plataformas.
-- En el registro se eligió inicialmente IWSDK/WebXR. El diseño evolucionó después hacia Unity por la integración de manos y entorno. El formulario final debe reflejar el motor realmente utilizado.
-- Se quiere trabajar con asistencia de agentes de código. El equipo inicial de trabajo se plantea como individual; no inventar integrantes ni atribuciones.
-- No está confirmado aquí que ya exista acceso a un Quest ni una instalación funcional de Unity.
+Se informó la creación de ZH Development y una app de dashboard llamada ZH Spatial AI, un correo de bienvenida a Start y avance de inscripción. Son antecedentes de conversación, no una auditoría actual de elegibilidad. El formulario final debe reflejar los hechos y el motor utilizado.
 
-No almacenar en este repositorio público el correo de la cuenta, datos personales, capturas privadas de inscripción, App ID extraído de imágenes o enlaces de acceso a canales.
+Inicialmente se eligió IWSDK/WebXR al registrarse. Después se eligió Unity/C# para la integración de manos y geometría. Se conserva Unity; simulator-first no vuelve a cambiar de motor. El trabajo se plantea individual con asistencia de agentes; no inventar integrantes.
 
-## Evolución y decisión vigente
+El host previsto es macOS Apple Silicon; todavía se debe inspeccionar su instalación real. No se ha acreditado un Unity/XR Simulator ejecutando este proyecto ni acceso remoto al Mac desde el chat. No se planea acceso a Quest del equipo. No guardar correos, App ID privado, invitaciones ni datos personales en Git.
 
-Primero se discutió productividad espacial; luego boxeo MR; después invasores entrando por paredes. La versión vigente combina una maqueta del espacio real con intervenciones a tamaño real.
+## Evolución de la idea
 
-**Frase del producto:** Tu habitación está siendo invadida. La tienes delante en miniatura y tus manos pueden cambiar lo que ocurre a tu alrededor.
+Productividad espacial → boxeo MR → invasores por paredes → maqueta de la habitación con intervención a escala real. La decisión vigente mantiene esta última idea.
 
-El jugador protege el refugio de Pip, captura criaturas en una réplica simplificada de su habitación y ve una mano espectral ampliada ejecutar la intervención en el espacio real. Una herramienta reflectante permite romper la armadura de ciertos enemigos. Todo ocurre sentado, con movimientos cortos y una simulación única.
+**Frase:** Tu habitación está siendo invadida. La tienes delante en miniatura y tus manos pueden cambiar lo que ocurre a tu alrededor.
 
-## Por qué no basta la versión anterior
+El jugador protege a Pip, devuelve Motes y orienta un reflector para abrir la armadura de Shell antes de devolverlo. Una sola simulación alimenta ambas representaciones. La mano ampliada es feedback visual, no una segunda física. La habitación modifica rutas/colocación; no se mueve mobiliario físico.
 
-Invasores atravesando paredes no constituye por sí solo una diferenciación: First Encounters de Meta es un precedente relevante. Manipular una miniatura tampoco es una invención sin precedentes: A Fisherman's Tale explora relaciones entre escalas. Consultar enlaces en `FUENTES.md`.
+Se conservan precedentes: First Encounters para invasores en MR y A Fisherman's Tale para relaciones de escala. No presentar cualquiera de esas ideas aisladas como invención inédita. La hipótesis diferencial es su combinación con habitación, control hands-first y defensa breve; su calidad se debe observar, no deducir.
 
-La hipótesis diferencial es la combinación de **geometría de la habitación real + maqueta manipulable + consecuencias a escala real + defensa estratégica hands-first**, con un recorrido de pocos minutos. Debe comprobarse que el espacio altera decisiones y que alternar entre escalas es cómodo.
+## Lo que ya hay y lo que falta
+
+PRs #1–#8 incorporaron núcleo, entrada de manos y controles, geometría, encuentro Mote, Shell/reflector, guía y progreso, bootstrap Unity y pruebas del motor escritas. El núcleo/herramientas tienen evidencia de CI; importar/compilar Unity y SDKs, ejecutar XR Simulator y generar el APK siguen sin evidencia. Ver [ESTADO](ESTADO.md).
+
+La ruta preparada con ratón y sala sintética no es automáticamente Meta XR Simulator. MRUK puede usar fuentes de entorno distintas, pero hay que conectarlas y comprobarlas en nuestro código. No declarar esos adaptadores terminados por actualizar documentos.
+
+## Plan de trabajo adoptado
+
+Editor real y tests → runtime OpenXR/Meta XR Simulator → manos y salas simuladas → matriz de regresión → compilación Android → vídeo de simulación y acceso de evaluación autorizado. Hardware queda fuera del plan, no aprobado.
+
+El requisito de vídeo permite XR Simulator/emulador; la ruta Unity mantiene un APK y acceso para jueces. La demostración debe identificar que es simulada. No eliminar hands-first ni la ruta real de habitación del APK; los jueces no tienen que compilar el repositorio.
 
 ## Correcciones que no deben perderse
 
-1. No convertir el requisito hands-first en una obligación de usar cada tecnología disponible. Eye tracking no es requisito de nuestro juego, y Quest 3/3S no tienen ese hardware.
-2. MRUK entrega utilidades sobre datos del entorno; no genera automáticamente navegación, reglas de nivel ni comprensión de cualquier mueble.
-3. Una grieta virtual sobre una pared no significa reconstruir la textura real de la pared ni mover objetos físicos.
-4. No prometer 80–180 horas ni asegurar que se llega a nivel ganador: las estimaciones previas eran orientativas, sin validar entorno, habilidad XR o disponibilidad. Planificar por evidencia e hitos.
-5. No confundir simulador, editor y hardware. Un test Python verde no demuestra un juego VR; un APK compilado no demuestra comodidad.
-6. El nombre, diseño y alcance son provisionales. No hay investigación de marca ni garantía de elegibilidad por el simple registro.
+- No usar todas las tecnologías por obligación; eye tracking no es requisito del juego.
+- MRUK no resuelve automáticamente navegación, física o cualquier mueble.
+- No prometer horas, fecha de acabado o probabilidad de ganar sin evidencia.
+- Simulator-first no significa listo, instalado ni validado en hardware. XR Simulator tampoco es Android.
+- Las salas de prueba, las manos simuladas y las métricas del host se declaran con ese origen.
+- El nombre no tiene investigación de marca completada. Una bienvenida a Start no acredita todas las condiciones del concurso.
 
-## Qué significa «todo» en esta entrega
+## «Todo» y «terra form»
 
-Una base íntegra para construir y verificar: producto, experiencia, arquitectura, backlog, seguridad, pruebas, fuentes y materiales de entrega. **No significa que el juego haya sido desarrollado o probado en un Quest.** `ESTADO.md` separa lo creado de lo pendiente.
-
-## Qué significa «terra form» aquí
-
-Se interpreta como preparar la base técnica y de trabajo completa. Terraform de HashiCorp gestiona infraestructura; no crea escenas Unity ni aporta algo necesario al MVP offline. `../infra/README.md` documenta cuándo tendría sentido reabrir esa decisión. No se provisionan servicios ni se generan costes.
+Todo significa una base de producto y ejecución más el código efectivamente construido; no un juego final por mera documentación. Terraform administra infraestructura, no escenas Unity. El MVP es offline; no hay nube, pagos o terraform apply aprobados. Ver `../infra/README.md`.

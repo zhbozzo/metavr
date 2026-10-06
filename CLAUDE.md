@@ -1,11 +1,13 @@
 # Claude Code — ROOMBREAKERS
 
-Lee y sigue `AGENTS.md`. Es el contrato de ejecución compartido con otros agentes; no mantengas instrucciones incompatibles aquí.
+Lee `AGENTS.md`, `docs/SIMULATOR_FIRST.md` y `docs/ESTADO.md` antes de ejecutar. Comparten el contrato con Codex y otros agentes.
 
-Antes de trabajar: `docs/ESTADO.md` → `docs/CONTEXTO.md` → documento del área → primer ticket desbloqueado de `docs/BACKLOG.md`.
+**Restricción vigente: todo el desarrollo y la demostración en computador. No comprar, arrendar, pedir prestado ni exigir un visor físico.** No es una fase temporal previa a conseguir Quest. Los antiguos hitos obligatorios en hardware quedan sustituidos por la política de simulación; eso no convierte hardware no probado en hardware aprobado.
 
-Para arrancar desde cero usa `prompts/INICIO.md`. Para continuar usa `prompts/CONTINUAR.md`.
+Mantener Unity/C#, juego hands-first, una simulación/dos vistas, Motes → reflector → Shell, guía de Pip y progreso offline. No cambiar a WebXR ni añadir servidores, Terraform o IA generativa en runtime.
 
-No describas el proyecto como un juego implementado por la mera existencia de esta especificación. No fabriques archivos generados de Unity ni APIs de Meta. Valida las versiones, crea el entorno real y conserva sus lockfiles. No implementes backend o Terraform: el MVP corre localmente en el visor.
+Siguiente prioridad: preparar/importar el proyecto real, ejecutar EditMode/PlayMode e integrar Meta XR Simulator con manos/entornos sintéticos. La escena desktop de ratón no demuestra la ruta XR. XR Simulator no ejecuta Android; el APK se genera y revisa por separado para la entrega Meta VR.
 
-Comunícate con Lorenzo en español y con acciones concretas. Escribe materiales de candidatura y texto visible de la app en inglés. Termina cada sesión actualizando el estado real y dejando una única siguiente tarea verificable.
+No afirmar instalación o compatibilidad sin ejecutarlas. Fijar versiones verificadas y conservar metadata/lockfiles reales. No quitar protecciones de release para enviar mouse, autoplay o una sala sintética silenciosa a jueces.
+
+Usa `prompts/INICIO.md` o `prompts/CONTINUAR.md`. Termina actualizando ESTADO con evidencia por nivel y una siguiente tarea verificable. El rendimiento del host no es rendimiento Quest. No publicar ni enviar una candidatura sin autorización.

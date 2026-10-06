@@ -1,10 +1,10 @@
-# Entorno de desarrollo y primera prueba
+# Entorno de desarrollo sin visor
 
-Estado: procedimiento para ejecutar, no instalación ya realizada. Fuentes oficiales en `FUENTES.md` [S03–S08]. No se fijan versiones de Unity o Meta hasta comprobar una combinación compatible en una máquina real.
+Política: [SIMULATOR_FIRST](SIMULATOR_FIRST.md). Procedimiento pendiente de ejecución, no instalación ya realizada. No comprar, arrendar, pedir prestado ni exigir un dispositivo físico. No usar USB, Link o data forwarding como prerequisitos.
 
-## 1. Auditar la máquina y el repositorio
+## 1. Auditar el host y conservar trabajo
 
-Confirmar sistema operativo, arquitectura, espacio disponible, Unity Hub/editor instalado y acceso al visor. Leer estado de Git; no sobrescribir cambios existentes.
+Inspeccionar OS, arquitectura, RAM, espacio disponible, Git y editor/licencia reales. Ruta preferida: macOS Apple Silicon. El agente con acceso solo a GitHub no tiene automáticamente acceso al Mac.
 
 ```bash
 git status --short
@@ -13,69 +13,61 @@ python3 tools/check_repo.py
 python3 -m unittest discover -s tests -v
 ```
 
-Estos tests son del repositorio y modelo de referencia, no de Unity.
+Con .NET disponible ejecutar las suites del README. Estas comprobaciones no son tests del motor.
 
-## 2. Elegir y registrar versiones
+## 2. Proyecto y primera ejecución desktop
 
-Consultar requisitos actuales de Unity y SDKs oficiales. Elegir una versión del editor soportada por la integración de Meta, con Android Build Support y sus SDK/NDK/JDK compatibles. Crear un proyecto real en `unity/RoomBreakers`.
-
-Registrar en ESTADO.md: versión completa del editor, render pipeline, XR provider, Meta Core/Interaction/MRUK, sistema operativo y motivo de selección. Conservar `ProjectSettings/ProjectVersion.txt`, `Packages/manifest.json`, lockfile generado y archivos .meta.
-
-No combinar sin verificación un rig antiguo con un nuevo provider, ni instalar dos proveedores que compitan por el mismo runtime. No usar números de versión de una respuesta anterior como evidencia de compatibilidad. Los listados del concurso contienen nomenclaturas de SDK que hay que reconciliar con la documentación de instalación vigente.
-
-## 3. Crear proyecto mínimo
-
-Usar plantilla 3D compatible con la ruta oficial escogida. Configurar control de versiones con assets de texto y metadatos visibles según opciones reales del editor. Integrar solo SDKs necesarios: passthrough, manos/interacción y utilidades de entorno. Añadir spatial audio cuando exista una escena que probar.
-
-La primera escena debe contener rig válido, passthrough, manos y un objeto seleccionable. Sin modelos finales, boss, navegación de sala ni shaders complejos.
-
-No publicar una escena sintética como un scan real. El modo escritorio sirve para lógica y depuración y debe estar etiquetado.
-
-## 4. Preparar el Quest
-
-Seguir el flujo oficial de cuenta/organización de desarrollo, modo desarrollador y configuración del dispositivo. Lorenzo debe completar acuerdos, inicio de sesión y autorizaciones que le correspondan. No pedir contraseña o códigos al agente.
-
-Conectar USB de datos y autorizar depuración en el visor. Verificar el dispositivo mediante Meta Quest Developer Hub o herramientas Android de la instalación.
+Seguir [ARRANQUE_UNITY](ARRANQUE_UNITY.md). Con Unity 6 instalado/activado y `UNITY_EDITOR` correcto:
 
 ```bash
-adb devices
+python3 tools/setup_unity_project.py --create
 ```
 
-Si aparece `unauthorized`, resolver en el visor. No copiar el número de serie a un repositorio público. En equipos con varios dispositivos, seleccionar el objetivo explícitamente antes de instalar.
-
-## 5. Compilar e instalar
-
-Seleccionar Android y arquitectura de 64 bits compatible con requisitos vigentes. Verificar provider, manifest y permisos mediante la guía oficial. No añadir permisos de cámara/micrófono por suposición: mostrar passthrough no implica que el juego necesite acceder a fotogramas crudos.
-
-Usar Build and Run o, con un APK realmente generado y un solo dispositivo seleccionado:
+Con Test Framework configurado:
 
 ```bash
-adb install -r /ruta/local/al/build.apk
+python3 tools/setup_unity_project.py --create --verify
 ```
 
-No guardar claves de firma, passwords ni APKs en el Git del código. El bundle identifier y la firma definitivos se acuerdan con el propietario y se conservan; no reemplazar una app existente de otra finalidad.
+No usar un número de versión supuesto. Conservar ProjectVersion, manifest, lockfiles y .meta generados; no sobreescribir escenas. Abrir DesktopEncounter y comprobar el recorrido existente, sin reescribir las mecánicas. El ratón y la habitación sintética son desarrollo explícito.
 
-## 6. macOS y prueba real
+## 3. Runtime XR compatible
 
-La ruta base en Mac es editar y generar un APK Android que se ejecuta en el Quest. No prometer el flujo Meta Quest Link de PC como si estuviera disponible igual en macOS: consultar la guía actual del host soportado.
+Verificar documentación y versiones del editor, render pipeline, OpenXR Plugin, Meta Core, Interaction SDK, MRUK, XR Simulator standalone y API gráfica. Registrar la combinación realmente instalada. La guía oficial contempla macOS ARM y OpenXR Plugin 1.13.0+; eso es un mínimo documentado, no nuestra configuración probada. Ver referencias R1/R2 en SIMULATOR_FIRST.
 
-Un simulador puede ayudar con input y salas sintéticas. No valida registro espacial, jitter, legibilidad, cansancio, oclusión ni rendimiento del dispositivo final. Para esos puntos se necesita el visor.
+Instalar/configurar software por la ruta oficial en el equipo accesible, sin aceptar licencias por el propietario. No mezclar el antiguo paquete del simulador con standalone ni desinstalar dependencias ajenas automáticamente. Activar el runtime solo durante el desarrollo y registrar cómo desactivarlo para restaurar el anterior.
 
-## 7. Primer hito técnico
+Usar primero perfil Quest 3 y manos simuladas por teclado/ratón. Comprobar extensiones de manos, escena y passthrough. El perfil solo determina capacidades reportadas: no emula CPU/GPU ni ejecuta Android. Probar después Quest 3S con reinicio de sesión según la guía del runtime.
 
-Ver el entorno mediante passthrough → ver manos → seleccionar y mover un objeto → pausar y recuperar tras perder una mano → reiniciar sin controles. Registrar qué ocurrió, dispositivo/OS/SDK y limitaciones.
+## 4. Primera escena XR
 
-Luego añadir un fixture de sala y la transformación entre escalas. Solo después conectar datos reales de habitación y validación de colocación.
+Rig válido, runtime activo, manos simuladas y un objeto seleccionable. Confirmar que la entrada pasa por el adaptador XR real y no por DesktopEncounterHand. Después conectar el encuentro existente, conservando cámara y marcos de coordenadas.
 
-## Problemas frecuentes y orden de diagnóstico
+Sin controller obligatorio ni compras de mandos. No usar funcionalidades que solo se obtienen reenviando datos desde hardware. No depender de Environment Depth en Mac: la documentación del simulador lo limita a Windows. Trabajar con geometría de escena admitida y declarar capacidades ausentes.
 
-- No instala: comprobar módulo Android, dispositivo autorizado, arquitectura, firma y versión del paquete. Conservar error exacto.
-- Pantalla negra: verificar escena de arranque, rig, render pipeline y logs; no instalar más paquetes al azar.
-- No hay manos: verificar ajustes de dispositivo, permisos requeridos por la integración y rig/input real, después iluminación.
-- No hay datos de habitación: verificar configuración de espacio, consentimiento y soporte de la API elegida. No inventar una mesa detectada.
-- Editor funciona pero APK no: reproducir mínimo en Android y revisar platform defines, stripping, shaders y dependencias.
-- Contenido se mueve: revisar marcos, tracking origin y localización; no arreglar una vista con offsets que desalinean la otra.
+## 5. Habitaciones de desarrollo
 
-## Hecho vs. pendiente
+MRUK contempla Device/runtime, Prefab y JSON. Auditar MetaRoomSource y crear adaptadores explícitos que falten. Un nombre de API Device no convierte datos procedentes de XR Simulator en un scan real.
 
-Un setup pasa cuando se puede reconstruir desde el repositorio en la misma combinación de versiones y ejecutar la escena mínima en el dispositivo declarado. Adjuntar evidencia no sensible. Una captura del editor o un `npm install` no cumple ese hito.
+Conservar el mismo RoomSnapshot, planificador y dominio. Etiquetar fuente, fixture y versión; cargar paredes/suelo/obstáculos sintéticos y recorrer el juego. Denegación, datos faltantes y sala imposible deben producir recuperación visible. No sustituirlos silenciosamente por la habitación ideal.
+
+No modificar las protecciones de SyntheticRoomSource en release por el simple cambio de política. La ruta Android debe seguir usando datos consentidos del entorno del juez y manos del dispositivo; los fixtures son de desarrollo.
+
+## 6. Compilar Android sin instalar en hardware propio
+
+Instalar únicamente el Android Build Support y SDK/NDK/JDK compatibles con el editor escogido cuando corresponda. Verificar configuración vigente para Meta VR, arquitectura, manifest, escenas, stripping y shaders serializados. No inventar permisos: passthrough no implica acceso a cámara cruda.
+
+Producir un APK con firma/configuración del proyecto autorizadas. Registrar commit, versiones y hash del archivo real. No guardar llaves o APKs privados en Git. No ejecutar adb install, no exigir depuración USB y no marcar arranque Android como probado. XR Simulator no contiene una capa Android.
+
+## Diagnóstico antes de añadir funciones
+
+- Sin editor/licencia: bloqueo de software; continuar tareas verificables, no pedir Quest.
+- Runtime no arranca: registrar versión, provider, API gráfica y extensiones; no instalar paquetes al azar.
+- Sin manos simuladas: comprobar perfil/input/SDK y recorrido de datos, no sugerir comprar mandos.
+- Sin habitación: comprobar entorno sintético/runtime o fixture y callback de carga; no fingir detección.
+- Desktop funciona, XR falla: aislar rig y adaptadores, no eliminar la integración Meta.
+- APK no compila: revisar errores Android, símbolos, stripping, permisos y referencias; no declarar que el simulador prueba ese binario.
+
+## Cierre de hitos
+
+SIM-001 se acredita con editor y tests reales. SIM-002/SIM-003 requieren runtime XR y recorrido observado con manos/salas simuladas. SIM-005 requiere APK producido. Ningún hito exige disponer de un visor; ninguno convierte la ausencia de prueba física en validación. [Pruebas](PRUEBAS.md) · [Backlog](BACKLOG.md).

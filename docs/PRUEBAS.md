@@ -1,89 +1,94 @@
-# Pruebas y evidencia
+# Pruebas y evidencia — simulator-first
 
-Un test verde demuestra solo lo que ese test ejecutó. La validación documental y Python no prueba Unity, Android, sensores, comodidad ni elegibilidad.
+[Decisión vigente](SIMULATOR_FIRST.md): todo en computador; hardware del equipo fuera del plan. La falta de visor no bloquea un hito de simulación, pero no se convierte en PASS de dispositivo. Las reglas de entrega siguen vigentes.
 
-## Niveles de comprobación
+## Niveles independientes
 
-1. Repositorio: archivos esperados, enlaces relativos y configuración coherente.
-2. Referencia Python: transformación yaw/escala, reflexión y autoridad de captura simplificada.
-3. Unity EditMode: transformaciones 6DoF, dominio, estados, rutas, guardado y eventos.
-4. Unity PlayMode: jerarquías, selección, sincronización, pausa, escenas y UI.
-5. APK en Quest: instalación, permisos, manos, registro espacial, rendimiento y recuperación.
-6. Usuarios y salas no vistas: comprensión, comodidad, decisiones y repetición.
-7. Entrega: otro usuario autorizado instala desde el canal y sigue las instrucciones.
+| Nivel | Qué acredita |
+| --- | --- |
+| Repositorio/Python | Archivos, enlaces, modelo de referencia y herramientas |
+| Núcleo .NET | Reglas C# con entradas sintéticas, incluidos archivos temporales de guardado |
+| Unity EditMode | Los tests ejecutados contra APIs reales del motor |
+| Unity PlayMode | Ciclo de componentes, vistas e integración usando sus fuentes declaradas |
+| Meta XR Simulator | Ruta OpenXR/SDK y juego observado con manos/entornos simulados |
+| Compilación Android | APK producido, configuración y dependencias revisadas |
+| Acceso de evaluación | Canal/invitación comprobados hasta el punto realmente accesible |
+| Hardware | NO VALIDADO y fuera del plan; no confundirlo con ninguno anterior |
 
-No saltar del nivel 2 a afirmar el nivel 5. Los niveles 3–7 están pendientes hasta que exista evidencia real.
+La escena desktop de ratón no acredita XR Simulator. Meta documenta el simulador como runtime de API sin imagen Android; no prueba por ello el APK. Fuentes R1/R4 en SIMULATOR_FIRST.
 
-## Automatización de dominio prevista
+## Comandos ya existentes
 
-- Round-trip posición y rotación con orígenes distintos, escala y orientación.
-- Rechazar escala cero/negativa/no finita y coordenadas inválidas.
-- Respetar offset inicial de captura; no saltar al seleccionar.
-- Solo una mano puede poseer una entidad y una entidad por mano según configuración.
-- Un evento duplicado no duplica energía ni daño.
-- Miniatura no produce colisiones de gameplay.
-- Pausa congela timers, spawns y daño; reanudar no incorpora tiempo ausente.
-- Captura cancelada por tracking vuelve a lugar válido, sin velocidad residual.
-- No restaurar armadura durante Held; no devolver una entidad Resolved.
-- Reflector normalizado, número máximo de rebotes, trayectoria y tiempo de vida.
-- Una plantilla imposible se rechaza antes de entrar a Playing.
-- Guardado corrupto y versión desconocida recuperan un estado seguro.
+```bash
+python3 tools/check_repo.py
+python3 -m unittest discover -s tests -v
+```
 
-## Protocolo de captura
+Con .NET, ejecutar suites de validation según README. Con editor/proyecto/Test Framework reales:
 
-Registrar 40 intentos deliberados repartidos entre posiciones y manos. Separar aciertos, fallos de detección y selecciones falsas. Objetivo inicial: al menos 95% de capturas deliberadas correctas; registrar además cancelaciones y errores de destino. Una cifra sin denominador no se acepta.
+```bash
+python3 tools/run_unity_checks.py --platform EditMode
+python3 tools/run_unity_checks.py --platform PlayMode
+```
 
-Probar sin agitar las manos ni optimizar artificialmente el ambiente para el vídeo. Registrar iluminación aproximada y limitaciones sin capturar datos biométricos. No publicar coordenadas de manos.
+El verificador exige 12 EditMode o cuatro PlayMode según el modo. Sus tests Python usan procesos/XML sintéticos; no son una ejecución Unity. Ver [AUTOCHECKS](AUTOCHECKS.md). El runtime XR requiere comprobación adicional, no incluida automáticamente por esos comandos.
 
-## Protocolo de comprensión
+## Invariantes
 
-Cinco personas nuevas, cuando sea viable, con consentimiento para observación. Tras setup, no dar instrucciones verbales adicionales durante el primer intento. Medir tiempo hasta entender escalas y primera captura; registrar ayudas necesarias. Objetivo de diseño: 4 de 5 completan la interacción antes de 60 segundos con las pistas de la app.
+Mantener pruebas de round-trip 6DoF, offset de captura, exclusión de propietarios, rechazo de datos inválidos, resolución/daño únicos, pausa sin catch-up, cancelación segura, recalibración, armadura durante Held, un pulso/un rebote, geometría barrida y guardado recuperable. El número de tests no es un porcentaje de calidad o probabilidad de ganar.
 
-Preguntas: ¿qué cambió cuando moviste la miniatura?, ¿qué decisión tomaste por la habitación?, ¿qué repetirías?, ¿qué fue incómodo? No inducir respuestas positivas. Cualquier incomodidad permite detener la prueba.
+## Matriz sintética mínima a ejecutar
 
-## Matriz de habitaciones
+Vacía, estrecha/pequeña, escritorio, sofá/obstáculo, amplia admitida, origen rotado, suelo cóncavo, paredes/superficies faltantes, sector frontal bloqueado, corredor reflectante imposible, cambio de sala durante captura y carga fallida. Reservar fixtures no usados para ajustar el planificador.
 
-Sintéticas en Git: rectangular vacía, estrecha, con obstáculo central, superficies faltantes, sector obstruido y origen rotado. Incluir casos inválidos deliberados.
+Por caso: fixture/versiones, perfil, origen de datos, pasos, esperado, observado y evidencia. Un resultado válido puede ser un rechazo recuperable. No producir configuraciones imposibles para forzar un PASS. No publicar scans domésticos.
 
-Reales fuera de Git: al menos dos espacios de desarrollo y dos no usados para ajustar el generador cuando se disponga de ellos. Probar datos incompletos, permiso denegado, cambio de muebles y pérdida de localización. Si no se alcanzó la muestra, declararlo; no inventar pruebas.
+## Matriz de input y UI
 
-Resultado válido puede ser una configuración jugable o una recuperación clara. Rechazar una sala de forma útil es mejor que fingir detección y fallar durante partida. No todas las habitaciones tienen que ser compatibles con el MVP.
+Recorrer arranque → carga/colocación → Motes → reflector → Shell → resultado → reinicio/pausa/salida mediante manos simuladas. Cubrir solo izquierda, solo derecha y ambas; pinza cerrada al iniciar; entradas duplicadas/atrasadas/NaN; pérdida de mano propietaria; recuperación abriendo mano; foco; recolocación; cambio de etapa y controles superpuestos.
 
-## Matriz hands-first y confort
+La entrada debe pasar por el adaptador de SDK/runtime al acreditar XR. Inyectar HandSample al núcleo es útil, pero se etiqueta como prueba de dominio. No usar un controlador físico como requisito. No manipular estado interno para fabricar un vídeo de gameplay.
 
-Comprobar inicio, configuración, juego, ajustes, pausa, reinicio y salida sin mandos. Mano derecha, izquierda y modo asistido de una mano. Variar tamaño/altura de maqueta. Ocultar temporalmente la mano activa y recuperar sin daño. Menú de sistema, foco perdido y relocalización.
+## Observación y claridad
 
-Comprobar que ninguna interacción invita a caminar, golpear muebles o alcanzar una pared. No mover cámara automáticamente. Probar lectura de UI y detección de amenazas con FoV reducido mediante herramienta oficial cuando esté disponible; no llamar a eso prueba en hardware distinto.
+Revisar ambos ojos y FoV del perfil, tamaño/altura de maqueta, UI, objetivos y mano ampliada. Se busca juego sentado con movimientos cortos. Usuarios de escritorio nuevos, cuando sea viable, pueden aportar evidencia de comprensión; registrar número, ayudas y consentimiento. No llamar a esto ergonomía o confort físico VR comprobados.
 
-## Rendimiento
+En capturas deliberadas registrar aciertos, fallos y denominador por input/fixture. Los resultados son de la simulación, no tasa de precisión del sensor. No extrapolar iluminación, oclusión de dedos, fatiga o latencia real.
 
-Objetivo propio: 72 fps sostenidos en dispositivo objetivo, con configuración registrada. La documentación de Meta consultada establece mínimo de rendering y frecuencias permitidas por separado; ver FUENTES.md [S06]. No confundir Hz de pantalla con fps de la app.
+## Rendimiento y plataforma
 
-Medir CPU/GPU, tiempos de frame y periodos de caída; observar desde arranque hasta final, repetir sesiones para detectar acumulación, calor o memoria. Usar herramientas oficiales como OVR Metrics Tool si están disponibles. Medir gameplay sin grabación y con grabación por separado.
+Registrar CPU/GPU, API gráfica, resolución, memoria, tiempos de frame y sesiones repetidas del host. Separar ejecución grabada y sin grabación. No presentar fps del Mac como fps Quest ni Hz reportados como fps logrados.
 
-Registrar versión del APK, dispositivo, OS, SDK, frecuencia, duración y circunstancias. No deducir rendimiento del editor o del fps promedio. A 72 fps el presupuesto nominal es 13,89 ms por frame; margen y colas deben evaluarse realmente.
+Conservar un presupuesto conservador para Android y revisar build/stripping/shaders, sin inventar benchmarks. Environment Depth de XR Simulator está documentado para Windows; no exigirlo en Mac ni informar que se probó allí. Perfil físico, batería y temperatura permanecen no medidos.
 
-## Severidades
+## Evidencia para demo y APK
 
-P0: riesgo de seguridad, caída, pérdida de progreso grave, no instalar, bloqueo de sesión o necesidad de mandos. Detiene entrega.
-P1: selección inestable, desalineación, sala imposible sin recuperación, caídas persistentes de rendimiento. Corregir antes de presentación.
-P2: problemas de feedback/arte que no bloquean. Priorizar por impacto observado.
+Vídeo desde XR Simulator/emulador equivalente identificado; misma versión de código del candidato, fixtures y diferencias de plataforma declarados. APK real separado: commit/hash/versión y revisión de entrada/escena/permisos. No afirmar que el APK arrancó por haber grabado el editor.
 
-## Registro de una sesión de prueba
+La ruta release no requiere mouse, datos de laboratorio o conexión al ordenador del autor. Invitación web revisada no equivale a instalación del juez. No es necesario conseguir hardware para cerrar los hitos internos de alcance simulado.
+
+## Severidades y aceptación
+
+P0: caída, bloqueo de sesión, daño/recompensa inválidos graves, necesidad de mandos en la ruta prevista, secretos o build imposible. Se corrigen antes de enviar.
+P1: selección/escala inestable, sala imposible sin recuperación, degradación persistente observada. Priorizar antes de efectos.
+P2: acabado no bloqueante.
+
+La ausencia de pruebas de hardware es una limitación de alcance explícita, no un PASS y no un ticket de compra. Los fallos conocidos sí bloquean una afirmación de funcionamiento.
+
+## Registro
 
 ```text
 Fecha / ticket / commit:
-Tipo: Python | Unity EditMode | Unity PlayMode | APK | usuario | entrega
-Dispositivo y versiones (sin serial):
-Configuración y fixture anónimo:
-Pasos:
-Esperado:
-Observado:
+Nivel: documentos | .NET | EditMode | PlayMode | XR Simulator | Android build | acceso
+Host / editor / SDK / runtime / API gráfica:
+Perfil y fixture; origen: synthetic | runtime-simulated | device:
+Input utilizado y adaptador recorrido:
+Pasos / esperado / observado:
 Mediciones y denominadores:
-Resultado: PASS | FAIL | BLOCKED | NOT RUN
+PASS | FAIL | BLOCKED | NOT RUN:
 Evidencia no sensible:
-Limitaciones:
-Acción siguiente:
+Hardware: NO VALIDADO; fuera del plan del equipo
+Limitaciones / siguiente acción de software:
 ```
 
-Los vídeos domésticos y scans no se suben al repo. Guardar referencias privadas autorizadas sin enlaces que otorguen acceso público. ESTADO.md puede contener resultados agregados anónimos.
+No rellenar métricas con estimaciones. Resultados actuales en [ESTADO](ESTADO.md); fuentes técnicas de esta política en [SIMULATOR_FIRST](SIMULATOR_FIRST.md).
