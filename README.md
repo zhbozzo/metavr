@@ -4,11 +4,27 @@
 
 **Decisión vigente: desarrollo y demostración en computador, sin comprar ni depender de un visor físico.** Unity + Meta XR Simulator es la ruta elegida. Esto NO significa que el simulador ya esté instalado o ejecutando el proyecto. [Contexto simulator-first](docs/SIMULATOR_FIRST.md).
 
-**Estado:** núcleo C# y herramientas probados; encuentro Motes → reflector → Shell, Pip y progreso local implementados en código. Unity/Meta/MRUK, las pruebas del motor, la integración XR Simulator y el APK siguen sin ejecución acreditada. No hay una entrega final validada ni garantía de premio. [Estado y evidencia](docs/ESTADO.md).
+**Estado:** núcleo C# y herramientas probados; encuentro Motes → reflector → Shell, Pip y progreso local implementados en código. Unity/Meta/MRUK, las pruebas del motor, la integración XR Simulator y el APK siguen sin ejecución acreditada en el traspaso. No hay una entrega final validada ni garantía de premio. [Estado y evidencia](docs/ESTADO.md).
+
+## Codex: continuar en este computador hasta la entrega
+
+**[Encargo integral para Codex local](prompts/CODEX_LOCAL_ENTREGA.md)** contiene contexto, estado recibido, mapa del código, auditoría del host, instalación/configuración, integración y pruebas, acabado, APK, vídeo, acceso Competition y envío a Devpost.
+
+El propietario ha delegado la implementación y la entrega de este proyecto, no solamente su planificación. Ejecutar desde una sesión local con acceso a la carpeta: un chat conectado a GitHub o una tarea cloud no instala Unity en el Mac por sí solo. Mantener la restricción sin visor, los permisos del cliente y las confirmaciones de cuentas/acuerdos cuando sean necesarias. No publicar comercialmente en Store. [Autorización y límites](AGENTS.md).
+
+Punto de entrada para el agente:
+
+```text
+Lee AGENTS.md y prompts/CODEX_LOCAL_ENTREGA.md. Confirma que estás en el
+computador local y en zhbozzo/metavr. Audita el estado real, conserva el
+trabajo existente y ejecuta el encargo completo, desde Unity hasta la
+entrega autorizada. Sin visor físico, sin rehacer el juego y sin presentar
+pruebas de simulador como pruebas de hardware.
+```
 
 ## Qué debe leer cualquier agente
 
-[AGENTS.md](AGENTS.md) → [SIMULATOR_FIRST](docs/SIMULATOR_FIRST.md) → [ESTADO](docs/ESTADO.md) → [CONTEXTO](docs/CONTEXTO.md). Claude y Codex comparten la misma política. Las antiguas exigencias de conseguir/probar un visor quedan sustituidas; los registros históricos no son instrucciones vigentes de compra.
+[AGENTS.md](AGENTS.md) → [Encargo local](prompts/CODEX_LOCAL_ENTREGA.md) → [SIMULATOR_FIRST](docs/SIMULATOR_FIRST.md) → [ESTADO](docs/ESTADO.md) → [CONTEXTO](docs/CONTEXTO.md). Claude y Codex comparten la misma política. Las antiguas exigencias de conseguir/probar un visor quedan sustituidas; los registros históricos no son instrucciones vigentes de compra.
 
 ## Próximo paso: ejecutar software real
 
@@ -39,6 +55,7 @@ También siguen disponibles Open Scale Lab y Add Meta Hands Harness. No se quita
 
 | Tema | Documento |
 | --- | --- |
+| Codex local: ejecución y entrega completa | [Encargo integral](prompts/CODEX_LOCAL_ENTREGA.md) |
 | Restricción sin visor y fuentes actuales | [SIMULATOR_FIRST](docs/SIMULATOR_FIRST.md) |
 | Contexto y antecedentes | [Contexto](docs/CONTEXTO.md) |
 | Instrucciones de ejecución | [AGENTS](AGENTS.md) · [Claude](CLAUDE.md) · [Inicio](prompts/INICIO.md) · [Continuar](prompts/CONTINUAR.md) |
@@ -78,8 +95,8 @@ python3 tools/run_unity_checks.py --platform PlayMode
 
 ## Entrega y privacidad
 
-Nuestra ruta nativa conserva APK y acceso Competition para jueces, además de vídeo de gameplay desde XR Simulator; no se cambia a una entrega exclusiva de escritorio. [Procedimiento](docs/ENTREGA.md). Publicación y candidatura requieren autorización.
+Nuestra ruta nativa conserva APK y acceso Competition para jueces, además de vídeo de gameplay desde XR Simulator; no se cambia a una entrega exclusiva de escritorio. [Procedimiento](docs/ENTREGA.md). La delegación de publicación y candidatura está descrita en el encargo local; acuerdos y datos administrativos siguen sujetos a confirmación cuando corresponda.
 
 El juego es offline. El progreso guarda resultados, no manos, fotos, planos, UUID de anclajes, cuentas o números de serie. Práctica y release permanecen separados; la recuperación de dos checkpoints no garantiza conservar el último resultado ante cualquier fallo. Sin backend, pagos, telemetría, Terraform o eye tracking obligatorio.
 
-Repositorio público: no subir secretos, invitaciones, claves, datos domésticos o assets sin autorización. No se cambia licencia ni visibilidad. Esta actualización de contexto no instala herramientas ni modifica el código de gameplay.
+Repositorio público: no subir secretos, invitaciones, claves, datos domésticos o assets sin autorización. No se cambia licencia ni visibilidad. Este traspaso de contexto no instala herramientas ni modifica el código de gameplay.
