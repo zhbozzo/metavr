@@ -1,6 +1,12 @@
 # Candidato Android, vídeo simulado y candidatura
 
-Procedimiento pendiente. No hay APK ni candidatura enviada desde este repositorio. [SIMULATOR_FIRST](SIMULATOR_FIRST.md) gobierna el plan: sin compras ni acceso obligatorio a visor; hardware no validado. Esto no exime del build Meta VR ni de hands-first.
+Procedimiento pendiente. No hay APK ni candidatura enviada desde este repositorio al preparar el handoff. [SIMULATOR_FIRST](SIMULATOR_FIRST.md) gobierna el plan: sin compras ni acceso obligatorio a visor; hardware no validado. Esto no exime del build Meta VR ni de hands-first.
+
+## Delegación vigente a Codex local
+
+El propietario encargó a Codex completar también la entrega en este computador. [Encargo integral](../prompts/CODEX_LOCAL_ENTREGA.md) y [AGENTS](../AGENTS.md) definen el alcance: APK en el canal Competition del proyecto correcto, vídeo público de demostración y candidatura a esta competencia. Esa autorización operativa cubre las subidas y el envío cuando pasen las comprobaciones; no exigir otra autorización genérica por cada paso técnico.
+
+No incluye publicación comercial en Store, compras, otros concursos, aceptar acuerdos no confirmados, inventar elegibilidad ni escoger cuentas ambiguas. Solicitar solo login/2FA, permisos, confirmaciones legales o datos no resolubles cuando hagan falta. Las restricciones del cliente y la plataforma siguen vigentes. No extraer credenciales ni eludir aprobaciones. No hay una entrega efectiva hasta obtener confirmación de Submitted y revisar el proyecto correcto.
 
 ## 1. Congelar un candidato comprobable
 
@@ -18,7 +24,7 @@ Guardar artefacto y llaves en lugares privados apropiados, no en el Git del cód
 
 ## 2. Canal de evaluación
 
-Los requisitos Devpost reconsultados piden APK en canal nuevo Competition e Invite URL para nuestra ruta Unity. Consultar originales enlazados en SIMULATOR_FIRST y CONCURSO antes de publicar. Subir/configurar solo con autorización.
+Los requisitos Devpost reconsultados piden APK en canal nuevo Competition e Invite URL para nuestra ruta Unity. Consultar originales enlazados en SIMULATOR_FIRST y CONCURSO antes de publicar. Subir/configurar conforme a la delegación anterior y confirmar la identidad del proyecto antes de hacerlo.
 
 Comprobar lo accesible de invitación, permisos de acceso y estado del build en dashboard. No enviar una URL administrativa que solo vea el autor. No commitear invitaciones secretas. No llamar a esta revisión instalación probada por otra cuenta/dispositivo: esa comprobación física queda no realizada, fuera del plan.
 
@@ -46,7 +52,7 @@ Montaje propuesto de unos 140 segundos:
 
 El vídeo corresponde a la misma versión fuente del APK y declara diferencias relevantes entre ejecución host/Android. No se afirma que es una grabación del APK si es del editor. No usar aceleración engañosa, edición para esconder pasos manuales o manipulación del estado para fingir funcionalidades.
 
-Revisar audio/texto/subtítulos ingleses, privacidad y derechos. Las salas son sintéticas: no hacen falta fotos o scans del domicilio. Publicar en YouTube/Vimeo según el requisito vigente y solo con autorización; comprobar reproducción pública.
+Revisar audio/texto/subtítulos ingleses, privacidad y derechos. Las salas son sintéticas: no hacen falta fotos o scans del domicilio. La delegación cubre publicar este demo en la cuenta autorizada de YouTube/Vimeo según el requisito vigente; comprobar el archivo exportado y su reproducción pública. No grabar ventanas privadas ni usar una cuenta no resuelta.
 
 ## 5. Formulario y derechos
 
@@ -54,12 +60,16 @@ Revisar audio/texto/subtítulos ingleses, privacidad y derechos. Las salas son s
 
 Confirmar remitente, integrantes, país, correo Start, Gaming, división y Unity reales; no guardar correos o declaraciones personales en Git. La fecha de lanzamiento la decide el propietario. No inferir casillas legales ni condiciones administrativas de un correo de bienvenida.
 
-La decisión de no usar hardware no autoriza omitir requisitos del concurso. El propietario revisa el riesgo residual, los derechos de material y el acceso antes de autorizar publicación/envío.
+La decisión de no usar hardware no autoriza omitir requisitos del concurso. El riesgo residual de hardware se mantiene explícito; acuerdos, derechos de material y declaraciones deben estar resueltos antes de enviar. Si falta una confirmación, solicitar el punto concreto y continuar las tareas independientes. No sustituir el envío por un borrador ni duplicar un proyecto existente.
 
-## 6. Preservación
+## 6. Preservación y confirmación
 
-Conservar SHA, versión/hash del APK, versión de vídeo, configuración del simulador, fixtures y confirmación efectiva de submission en un lugar adecuado. Mantener disponibilidad durante evaluación y respetar la congelación tras el cierre. Reconsultar fechas antes de enviar; no depender de una subida de último minuto.
+Conservar SHA, versión/hash del APK, versión de vídeo, configuración del simulador, fixtures y confirmación efectiva de submission en un lugar adecuado. Verificar que el estado recibido sea Submitted, no Draft, y que corresponda al concurso/proyecto correctos. Registrar fecha, enlace público y evidencia sin datos privados; el acceso secreto a builds permanece fuera de Git.
+
+Mantener disponibilidad durante evaluación y respetar la congelación tras el cierre. Reconsultar fechas antes de enviar; no depender de una subida de último minuto. No prometer monitorización futura si no hay una tarea activa configurada para ello.
 
 ## Gate interno de entrega
 
-Se exige build producido, pruebas del alcance simulado, materiales honestos, acceso configurado y autorización. Hardware sigue NO VALIDADO y no es una compra pendiente. No confundir la decisión del equipo de aceptar ese riesgo con garantía de elegibilidad, aceptación del build o buen funcionamiento físico.
+Se exige build producido, pruebas del alcance simulado, materiales honestos, acceso configurado, autorización y declaraciones requeridas. Hardware sigue NO VALIDADO y no es una compra pendiente. No confundir la decisión del equipo de aceptar ese riesgo con garantía de elegibilidad, aceptación del build o buen funcionamiento físico.
+
+Si el único bloqueo es login, permiso o acuerdo, conservar listos artefactos, textos y pasos exactos; informar pendiente, no entregado. El encargo termina con la entrega efectiva cuando las herramientas y autorizaciones lo permiten, no por haber escrito este procedimiento.

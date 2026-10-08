@@ -1,14 +1,24 @@
 # Estado real de ROOMBREAKERS
 
-Actualización: 5 de octubre de 2026, hora de Chile (consulta/escritura del 6 de octubre UTC). **Decisión vigente: desarrollo y demostración en computador, sin comprar ni depender de visor físico.** Ver [SIMULATOR_FIRST](SIMULATOR_FIRST.md).
+## Incremento 010 — encargo integral a Codex local
 
-## Incremento 009 — contexto y plan sin hardware
+Actualización documental: 7 de octubre de 2026. El propietario ha delegado a Codex ejecutar el proyecto en este computador y encargarse también de la entrega del concurso. [Encargo completo](../prompts/CODEX_LOCAL_ENTREGA.md). Se conserva la restricción de desarrollo/demostración sin visor físico.
 
-Se actualizan instrucciones de agentes, prompts, contexto, entorno, plan, backlog, pruebas y entrega. Se elimina la exigencia interna de obtener un Quest o probarlo antes de continuar. Los IDs RB se conservan y se añade cola SIM-001–006 para editor, runtime, fuentes de sala, regresiones, APK y vídeo.
+El handoff reúne estado recibido, mapa del código, auditoría del equipo y Git, preparación de Unity, integración de XR Simulator, calidad/pruebas, APK, vídeo, canal Competition, formulario y confirmación efectiva del envío. AGENTS y README apuntan a ese encargo. La autorización incluye las operaciones de entrega de este proyecto; no sustituye login, 2FA, permisos del cliente, acuerdos o declaraciones que requieran confirmación del titular. No incluye compras ni publicación comercial en Store.
 
-Esta es una actualización documental. No cambia gameplay, SDKs instalados, firmas, visibilidad o licencia. No instala Unity/XR Simulator, no conecta el Mac, no crea un APK y no ejecuta el motor. No convierte los adaptadores actuales en integración del simulador por el solo cambio de plan.
+**No se accedió a este computador desde ChatGPT ni se lanzó Codex en él.** Se preparó el encargo en GitHub para que el propietario lo pase a una sesión local. La revisión del contenedor remoto no encontró Unity/dotnet en PATH ni resolución DNS de GitHub; eso no describe el Mac. El conector GitHub sí permitió leer/escribir el repositorio.
 
-La política vigente sustituye los antiguos gates internos de hardware; los registros de implementación anteriores permanecen en Git como evidencia histórica. Hardware queda fuera del plan y NO VALIDADO, no falsamente aprobado.
+El conector Devpost pidió reautenticación (401); no se le atribuye al usuario o al futuro Codex una sesión válida o inválida por ese resultado. Se reconsultaron por web las páginas públicas del concurso y la documentación oficial de Codex/Meta. Ningún formulario, APK o vídeo se publicó en este incremento.
+
+Solo se modifican documentos de contexto e instrucciones. La evidencia de checks de esta rama se registra en su PR después de observarla. No se vuelven a presentar los resultados históricos como pruebas nuevas del motor.
+
+**Próxima ejecución de Codex:** confirmar entorno local y carpeta correcta, auditar cambios existentes, correr el bootstrap y resolver los errores reales de Unity. Seguir SIM-001–006 hasta las operaciones de entrega autorizadas, dejando evidencia y pasos humanos exactos cuando existan. No responder solo con otro plan ni pedir un visor.
+
+## Decisión conservada del incremento 009
+
+**Desarrollo y demostración en computador, sin comprar ni depender de visor físico.** Ver [SIMULATOR_FIRST](SIMULATOR_FIRST.md). Se actualizaron instrucciones de agentes, prompts, contexto, entorno, plan, backlog, pruebas y entrega. Se eliminó la exigencia interna de obtener un Quest o probarlo antes de continuar. Los IDs RB se conservan y se añadió la cola SIM-001–006 para editor, runtime, fuentes de sala, regresiones, APK y vídeo.
+
+La política sustituye los antiguos gates internos de hardware; los registros de implementación anteriores permanecen en Git como evidencia histórica. Hardware queda fuera del plan y NO VALIDADO, no falsamente aprobado. Ni el cambio de plan ni este handoff conectan los adaptadores al simulador por sí solos.
 
 ## Producto y código conservados
 
@@ -24,13 +34,13 @@ El paquete contiene rutas desktop y adaptadores Meta/MRUK escritos. La escena de
 - [C# 37363316830](https://github.com/zhbozzo/metavr/actions/runs/37363316830): ocho suites completas. Logs detallados previos del mismo núcleo en [37362619274](https://github.com/zhbozzo/metavr/actions/runs/37362619274): 265 aprobados, cero fallos.
 - Bootstrap y verificador ejecutados sin editor en el entorno remoto: BLOCKED/código 2, no motor ejecutado.
 
-Los checks de este incremento documental se registran en su PR después de observarlos. No presentar estas ejecuciones históricas como nuevas. No se agregan tests de gameplay ni se cambia su número.
+[PR #9](https://github.com/zhbozzo/metavr/pull/9), integrado en `a142054d9b6c48dadefe96c33d4cf4eedda07df7`, documentó la decisión simulator-first. [Foundation 37397666467](https://github.com/zhbozzo/metavr/actions/runs/37397666467): 68 Python y enlaces/archivos comprobados. No cambió código ni ejecutó Unity.
 
-## Estado por nivel
+## Estado por nivel al traspasar
 
-| Verificación | Estado al registrar la decisión |
+| Verificación | Estado recibido |
 | --- | --- |
-| Dominio C# / herramientas Python | Evidencia previa PASS, enlaces arriba |
+| Dominio C# / herramientas Python | Evidencia histórica PASS, enlaces arriba |
 | Unity crea/importa y ejecuta preparador C# | NOT RUN |
 | Compilación del motor y SDKs instalados | NOT RUN |
 | 12 EditMode / 4 PlayMode escritos | NOT RUN |
@@ -40,24 +50,18 @@ Los checks de este incremento documental se registran en su PR después de obser
 | Matriz simulator-first completa | Planificada, no creada/ejecutada íntegramente |
 | Compilación APK Android | NOT RUN |
 | Instalación / sensores / confort / fps Quest | NO VALIDADO, fuera del plan por decisión del propietario |
-| Canal Competition, vídeo publicado o candidatura | No realizados por esta actualización |
+| Canal Competition, vídeo publicado o candidatura | No realizados por este traspaso |
 
-No hay editor ni runtime XR accesibles desde esta sesión de GitHub. Esto es una limitación del entorno actual, no evidencia de que el Mac no pueda instalarlos. No se ha obtenido acceso remoto al equipo. Los comandos futuros requieren herramientas reales y licencia del usuario cuando corresponda.
+No se ha obtenido acceso remoto al equipo desde esta sesión de GitHub. Codex debe auditar sus propias herramientas/permisos y no heredar los bloqueos del contenedor remoto como si describieran su entorno local. Los comandos futuros requieren software real y activación/licencia del usuario cuando corresponda.
 
 ## Restricciones técnicas adoptadas
 
-Unity/C# permanece; no migración WebXR. Los perfiles de simulador no prueban hardware. XR Simulator es runtime de API sin imagen Android; el APK se produce por separado. En Mac no hacer indispensable Environment Depth del simulador, documentado para Windows. Referencias y detalles en SIMULATOR_FIRST.
+Unity/C# permanece; no migración WebXR. Los perfiles de simulador no prueban hardware. XR Simulator es runtime de API sin imagen Android; el APK se produce por separado. En Mac no hacer indispensable Environment Depth del simulador, documentado para Windows. Referencias y detalles en SIMULATOR_FIRST y el encargo local.
 
 La ruta del APK mantiene manos reales y carga consentida de habitación para jueces. Los fixtures son explícitos en desarrollo; no quitar protecciones de release ni sustituir fallos silenciosamente. La separación de progreso práctica/release permanece.
 
 El reflector sigue fijo, un pulso y un rebote; sala de piso horizontal/obstáculos conservadores; arte/mano provisionales. No se ha calibrado duración, accesibilidad completa, presentación o rendimiento. La guía y las recompensas no equivalen a más niveles.
 
-## Próxima tarea
-
-**SIM-001:** ejecutar el preparador con editor real, resolver errores y correr EditMode/PlayMode. **Después SIM-002:** runtime Meta XR Simulator y una interacción de manos simuladas por SDK. No pedir compra, arriendo, préstamo o USB como paso previo.
-
-Un agente debe registrar exactamente el nivel observado, conservar cambios ajenos y no publicar/envíar sin autorización. Si no dispone del editor, avanzar trabajo verificable e informar la dependencia de software, sin inventar pruebas.
-
 ## Historia conservada
 
-[Estado íntegro anterior, incremento 008](https://github.com/zhbozzo/metavr/blob/aead3358d922e6d1e532818e3d1c55b824bbefe5/docs/ESTADO.md) conserva detalles de implementación y enlaces de PR #1–#8. No se borra ni se reescribe su evidencia en retrospectiva. Las obligaciones operativas de hardware que allí aparezcan están sustituidas por la decisión 009.
+[Estado íntegro del incremento 009](https://github.com/zhbozzo/metavr/blob/a142054d9b6c48dadefe96c33d4cf4eedda07df7/docs/ESTADO.md) y [estado del incremento 008](https://github.com/zhbozzo/metavr/blob/aead3358d922e6d1e532818e3d1c55b824bbefe5/docs/ESTADO.md) conservan el detalle y los enlaces de PR #1–#9. No se modifica su evidencia retrospectiva. Las obligaciones antiguas de hardware están sustituidas por simulator-first; la delegación local de entrega queda precisada en AGENTS y el nuevo encargo.
